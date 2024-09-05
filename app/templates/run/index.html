@@ -1,0 +1,23 @@
+{%extends "base.html" %} 
+{%block content%} 
+
+<div class="container">
+  <h3>Running panel for profile <b class="mark">{{ profile }}</b> </h3>
+</div>
+
+<div class="row">
+<div class="container">
+<div class="panel panel-primary">
+    <div class="panel-heading">Configuration run</div>
+    <div class="panel-body">
+        <p>Null</p>
+    </div>
+</div>
+</div>
+</div>
+
+{% endblock %}
+
+{%block scripts%} 
+  document.getElementById("menu-run").classList.add('active');
+{% endblock %}

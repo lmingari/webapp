@@ -1,0 +1,7 @@
+app.db
+
+trash
+app/venv
+
+__pycache__/
+*.pyc

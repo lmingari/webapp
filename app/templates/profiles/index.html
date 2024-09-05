@@ -1,0 +1,88 @@
+{%extends "base.html" %} 
+{%block content%} 
+
+<div class="row">
+<div class="container">
+<div class="panel panel-primary">
+    <div class="panel-heading">Add new profile</div>
+    <div class="panel-body">
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        {% for field in form if field.widget.input_type != 'hidden' %}
+        <div class="form-group">
+          {{ field.label }}
+          {{ field(class_="form-control") }}
+        </div>
+        {% endfor %}
+        <p><input type="submit" class="btn btn-default" value="Add profile"></p>
+    </form>
+    </div>
+</div>
+</div>
+</div>
+
+<div class="row">
+<div class="container">
+<div class="panel panel-primary">
+    <div class="panel-heading">Profile list</div>
+    <div class="panel-body">
+
+
+
+    <table class="table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Title</th>
+        <th>Description</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+
+    {% if active %}
+        <div class="alert alert-warning" role="alert">
+            Active profile: {{active}}
+        </div>
+    {% else%}
+        <div class="alert alert-danger" role="alert">
+            No active profile!
+        </div>
+    {% endif %}
+
+    {% if profiles|length == 0 %}
+        <div class="alert alert-warning" role="alert">
+            No Profile Found. Add your first profile now!
+        </div>
+    {% else %}
+        {% for profile in profiles %}
+        {% if active==profile.title %}
+        <tr class="info">
+        {% else %}
+        <tr>
+        {% endif %}
+            <td>{{loop.index}}</td>
+            <td>{{profile.title}}</td>
+            <td>{{profile.description}}</td>
+            <td>
+                <a href="{{ url_for('profiles.load',id=profile.id) }}"   type="button" class="btn btn-success">Load</a>
+                <a href="{{ url_for('profiles.delete',id=profile.id) }}" type="button" class="btn btn-danger">Delete</a> 
+            </td>
+        </tr>
+        {% endfor %}
+    {% endif %}
+
+
+    </tbody>
+  </table>
+
+    </div>
+</div>
+</div>
+</div>
+
+{% endblock %}
+
+{%block scripts%} 
+  document.getElementById("menu-prof").classList.add('active');
+{% endblock %}
