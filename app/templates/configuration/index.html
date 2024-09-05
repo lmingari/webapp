@@ -1,3 +1,4 @@
+{% from "macros/forms.html" import render_form_field %}
 {%extends "base.html" %} 
 {%block content%} 
 
@@ -6,10 +7,12 @@
   <ul class="nav nav-pills">
       {% for item in blocks %}
       {% if item==block %}
-      <li class="active"><a href="{{ url_for('configuration.set', block=item) }}">{{ item }}</a></li>
+      <li class="active">
       {% else %}
-      <li><a href="{{ url_for('configuration.set', block=item) }}">{{ item }}</a></li>
+      <li>
       {% endif %}
+      <a href="{{ url_for('configuration.set', block=item) }}">{{ item }}</a>
+      </li>
       {% endfor %}
   </ul>
   <br>
@@ -22,24 +25,13 @@
     <div class="panel-heading">Configuration run</div>
     <div class="panel-body">
         <form method="POST">
-            {{ form.hidden_tag() }}
-            {% for field in form if field.widget.input_type != 'hidden' %}
-            {% if field.widget.input_type=='checkbox' %}
-            <div class="form-check">
-               {{ field }} {{ field.label }}  
+            <div class="form-container">
+                {{ form.hidden_tag() }}
+                {% for field in form if field.widget.input_type != 'hidden' %}
+                    {{ render_form_field(field) }}
+                {% endfor %}
+                <p><input type="submit" class="btn btn-default" value='Update'></p>
             </div>
-            {% else %}
-            <div class="form-group">
-              {{ field.label }}
-              {{ field(class_="form-control") }}
-
-              {%- for error in field.errors %}
-              <p class="text-danger">{{ error }}</p>
-              {% endfor %}
-            </div>
-            {% endif %}
-            {% endfor %}
-            <p><input type="submit" class="btn btn-default"></p>
         </form>
     </div>
 </div>

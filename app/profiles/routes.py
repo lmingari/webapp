@@ -25,21 +25,19 @@ def index():
 
 @bp.route('/delete/<int:id>')
 def delete(id):
-    row = ProfileModel.query.get_or_404(id)
+    p = ProfileModel.query.get_or_404(id)
     try:
-        if row.title==session.get('profile'): del session['profile']
-        db.session.delete(row)
+        if session.get('profile')==id: del session['profile']
+        db.session.delete(p)
         db.session.commit()
-        flash(f"Deleted profile: {row.title}")
+        flash(f"Deleted profile: {p.title}")
         return redirect(url_for('profiles.index'))
     except:
         return "Error....."
 
 @bp.route('/load/<int:id>')
 def load(id):
-    row = ProfileModel.query.get_or_404(id)
-    session["profile"] = row.title
-    flash(f"Loaded profile {row.title}")
+    p = ProfileModel.query.get_or_404(id)
+    session["profile"] = id
+    flash(f"Loaded profile {p.title}")
     return redirect(url_for('profiles.index'))
-
-

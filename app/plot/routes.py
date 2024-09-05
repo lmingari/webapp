@@ -10,11 +10,11 @@ def index():
         flash("A profile must be loaded")
         return redirect(url_for('profiles.index'))
     form = PlotForm()
-    form.time.choices = [(1, 'hi'), (2, 'hi2')]
     context = {
             'show_plot': False,
             'form': form,
             }
     if form.validate_on_submit():
         context['show_plot'] = True
+        form.time.choices = [(1, 'hi'), (2, 'hi2')]
     return render_template('plot/index.html', **context)

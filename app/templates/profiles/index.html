@@ -1,3 +1,4 @@
+{% from "macros/forms.html" import render_form_field %}
 {%extends "base.html" %} 
 {%block content%} 
 
@@ -6,16 +7,15 @@
 <div class="panel panel-primary">
     <div class="panel-heading">Add new profile</div>
     <div class="panel-body">
-    <form method="POST">
-        {{ form.hidden_tag() }}
-        {% for field in form if field.widget.input_type != 'hidden' %}
-        <div class="form-group">
-          {{ field.label }}
-          {{ field(class_="form-control") }}
-        </div>
-        {% endfor %}
-        <p><input type="submit" class="btn btn-default" value="Add profile"></p>
-    </form>
+        <form method="POST">
+            <div class="form-container">
+                {{ form.hidden_tag() }}
+                {% for field in form if field.widget.input_type != 'hidden' %}
+                    {{ render_form_field(field) }}
+                {% endfor %}
+                <p><input type="submit" class="btn btn-default" value="Add profile"></p>
+            </div>
+        </form>
     </div>
 </div>
 </div>
@@ -26,8 +26,6 @@
 <div class="panel panel-primary">
     <div class="panel-heading">Profile list</div>
     <div class="panel-body">
-
-
 
     <table class="table">
     <thead>
@@ -40,23 +38,19 @@
     </thead>
     <tbody>
 
-    {% if active %}
-        <div class="alert alert-warning" role="alert">
-            Active profile: {{active}}
-        </div>
-    {% else%}
+    {% if not active %}
         <div class="alert alert-danger" role="alert">
             No active profile!
         </div>
     {% endif %}
 
     {% if profiles|length == 0 %}
-        <div class="alert alert-warning" role="alert">
+        <div class="alert alert-danger" role="alert">
             No Profile Found. Add your first profile now!
         </div>
     {% else %}
         {% for profile in profiles %}
-        {% if active==profile.title %}
+        {% if profile.id == active %}
         <tr class="info">
         {% else %}
         <tr>
