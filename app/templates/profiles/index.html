@@ -7,13 +7,15 @@
 <div class="panel panel-primary">
     <div class="panel-heading">Add new profile</div>
     <div class="panel-body">
-        <form method="POST">
+        <form class="form-horizontal" method="POST">
             <div class="form-container">
                 {{ form.hidden_tag() }}
                 {% for field in form if field.widget.input_type != 'hidden' %}
                     {{ render_form_field(field) }}
                 {% endfor %}
+                <div class="col-sm-offset-5 col-sm-3">
                 <p><input type="submit" class="btn btn-default" value="Add profile"></p>
+                </div>
             </div>
         </form>
     </div>

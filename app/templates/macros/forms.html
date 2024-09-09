@@ -1,15 +1,15 @@
 {% macro render_form_field(field) %}
 <div class="form-group">
     {% if field.type == 'BooleanField' %}
-    <div class="checkbox">
-        <label>
-            {{ field }}
-            {{ field.label.text|safe }}
-        </label>
-    </div>
+        <div class="col-sm-offset-5 col-sm-3">
+        {{ field(class_="form-check-input") }}
+        {{ field.label(class_="form-check-label") }}
+        </div>
     {% else %}
-    {{ field.label }}
-    {{ field(class_="form-control") }}
+        {{ field.label(class_="control-label col-sm-5") }}
+        <div class="col-sm-3">
+        {{ field(class_="form-control") }}
+        </div>
     {% endif %}
 
     {%- for error in field.errors %}

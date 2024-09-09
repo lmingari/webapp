@@ -1,24 +1,6 @@
-{% macro parse_column(svar,var) -%}
-{% if var.inputs|length == 1 -%}
-    {% if var.inputs|first == 'float' -%}
-        db.Column('{{svar}}', db.Float, info = {'label': '{{svar}}'}, default = {{var.default}})
-    {%- elif var.inputs|first == 'integer' -%}
-        db.Column('{{svar}}', db.Integer, info = {'label': '{{svar}}'}, default = {{var.default}})
-    {%- else -%}
-        db.Column('{{svar}}', db.String, info = {'label': '{{svar}}'}, default = "{{ var.default }}")
-    {%- endif %}
-{%- elif var.inputs == ['YES','NO'] or var.inputs == ['ON','OFF']-%}
-        db.Column('{{svar}}', db.Boolean, info = {'label': '{{svar}}'})
-{%- else -%}
-    {% set tuples = [] -%}
-    {% for input in var.inputs -%}
-        {% set _ = tuples.append((input, input)) -%}
-    {%- endfor -%}
-    db.Column('{{svar}}', ChoiceType({{tuples}}), info = {'label': '{{svar}}'})
-{%- endif %}
-{%- endmacro %}
 from app.extensions import db
 from sqlalchemy_utils import ChoiceType
+import datetime
 
 class ProfileModel(db.Model):
     __tablename__ = 'profiles'
@@ -30,8 +12,8 @@ class ProfileModel(db.Model):
     blocks      = db.relationship('ConfigurationModel',
                                   backref = 'profile')
     def set_default(self):
-    {% for class in blocks %}
-        self.blocks.append({{class}}()) {% endfor %}
+    {% for section in sections %}
+        self.blocks.append({{section.label}}()) {% endfor %}
 
     def __repr__(self):
         return f'<Profile "{self.title}">'
@@ -51,18 +33,19 @@ class ConfigurationModel(db.Model):
     def __repr__(self):
         return f'<Block "{self.type}">'
 
-{% for name,block in blocks.items() %}
-class {{name}} (ConfigurationModel):
-    __tablename__ = "{{name}}"
+{% for section in sections %}
+class {{section.label}} (ConfigurationModel):
+    __tablename__ = "{{section.label}}"
 
     id = db.Column(db.Integer, 
                    db.ForeignKey('block.id'), 
                    primary_key=True)
-    {% for svar,var in block.main.params.items() %}
-    f{{ loop.index }} = {{ parse_column(svar,var) }} 
-    {%- endfor %}
+
+    {% for key,f in section.data.items() -%}
+    {{key}} = db.Column({{f.mtype}}, info = {'label': '{{f.label}}'}, default = {{ f.default|repr }})
+    {% endfor %}
 
     __mapper_args__ = {
-        'polymorphic_identity': '{{name}}'
+        'polymorphic_identity': '{{section.label}}'
     }
 {% endfor %}
