@@ -12,7 +12,7 @@ class OrderedMeta(type):
         return clsobj
 
 class BaseClass(object, metaclass=OrderedMeta):
-    def __init__(self, fields):
+    def __init__(self, fields=None):
         self._fields = OrderedDict()
 
         # get class variables
@@ -122,9 +122,6 @@ class FieldChoice(Field):
         return f'ChoiceType({items})'
 
 class Section(BaseClass):
-    def __init__(self,label=None,fields=None):
-        super().__init__(fields)
-        self.label = label
 
     def _fmt_var(self,variable):
         strings = [item.__str__() for item in self if item.variable==variable]
@@ -133,13 +130,25 @@ class Section(BaseClass):
 
     def __str__(self):
         seen = set()
-        output = "++++++ " + self.label
+        output = "++++++ New section:"
         for item in self:
             v = item.variable
             if v not in seen: 
                 seen.add(v)
                 output += '\n'
                 output += self._fmt_var(v)
+        return output
+
+    @property
+    def data_var(self):
+        output = {}
+        seen = set()
+        for key,item in self._fields.items():
+            v = item.variable
+            if v not in seen:
+                seen.add(v)
+                output[v] = []
+            output[v].append(key)
         return output
 
 class SectionTime(Section):
@@ -192,6 +201,14 @@ class SectionSpecies(Section):
     f5  = FieldBoolean(variable="SO2", default = True)
     f6  = FieldFloat  (variable="SO2", default = 1, label='MASS_FRACTION_(%)')
 
+def get_sections():
+    config = {
+            'TIME_UTC': SectionTime(),
+            'GRID':     SectionGrid(),
+            'SPECIES':  SectionSpecies(),
+            }
+    return config
+
 if __name__ == "__main__":
     from jinja2 import Template, Environment, FileSystemLoader
 
@@ -205,17 +222,13 @@ if __name__ == "__main__":
     env.filters['repr'] = repr_filter
     template = env.get_template('class.jinja')
 
-    config = [
-            SectionTime(label='TIME_UTC'),
-            SectionGrid(label='GRID'),
-            SectionSpecies(label='SPECIES'),
-            ]
+    config = get_sections()
 
     with open("models.py", "w") as f:
         out = template.render(sections=config)
         f.write(out)
 
-    for section in config:
-        print(section.label)
+    for label,section in config.items():
+        print(label)
         for k,field in section.data.items():
             print(k)

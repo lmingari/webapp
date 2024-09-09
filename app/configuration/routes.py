@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, session
 from app.extensions import db
 from app.models import ProfileModel
 from app.configuration.forms import getForm
+from app.fall3d import config
 
 bp = Blueprint('configuration', __name__)
 

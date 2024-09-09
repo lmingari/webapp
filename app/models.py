@@ -1,1 +1,1 @@
-../aux/models.py
+fall3d/models.py

@@ -12,8 +12,8 @@ class ProfileModel(db.Model):
     blocks      = db.relationship('ConfigurationModel',
                                   backref = 'profile')
     def set_default(self):
-    {% for section in sections %}
-        self.blocks.append({{section.label}}()) {% endfor %}
+    {% for slabel in sections %}
+        self.blocks.append({{slabel}}()) {% endfor %}
 
     def __repr__(self):
         return f'<Profile "{self.title}">'
@@ -33,9 +33,9 @@ class ConfigurationModel(db.Model):
     def __repr__(self):
         return f'<Block "{self.type}">'
 
-{% for section in sections %}
-class {{section.label}} (ConfigurationModel):
-    __tablename__ = "{{section.label}}"
+{% for slabel, section in sections.items() %}
+class {{slabel}} (ConfigurationModel):
+    __tablename__ = "{{slabel}}"
 
     id = db.Column(db.Integer, 
                    db.ForeignKey('block.id'), 
@@ -46,6 +46,6 @@ class {{section.label}} (ConfigurationModel):
     {% endfor %}
 
     __mapper_args__ = {
-        'polymorphic_identity': '{{section.label}}'
+        'polymorphic_identity': '{{slabel}}'
     }
 {% endfor %}
