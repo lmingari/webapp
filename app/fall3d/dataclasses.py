@@ -126,14 +126,9 @@ class Section(BaseClass):
         return f"{variable} = {value}"
 
     def __str__(self):
-        seen = set()
-        output = "++++++ New section:"
-        for item in self:
-            v = item.variable
-            if v not in seen: 
-                seen.add(v)
-                output += '\n'
-                output += self._fmt_var(v)
+        output = "\n"
+        for v in self.data_var:
+            output += self._fmt_var(v)+'\n'
         return output
 
     @property
@@ -158,7 +153,27 @@ class SectionTime(Section):
     f3 = FieldFloat(variable="RUN_END_(HOURS_AFTER_00)", default = 10)
     f4 = FieldChoice(variable="INITIAL_CONDITION", default = 'NONE', options = ['NONE','INSERTION','RESTART'])
     f5 = FieldString(variable="RESTART_FILE", default = 'Example-8.0.rst.nc')
+    f6 = FieldString(variable="RESTART_ENSEMBLE_BASEPATH", default = './')
 
+    def _fmt_var(self,variable):
+        if variable =='DATE':
+            return self.f1.value.strftime("YEAR = %Y \nMONTH = %m\nDAY = %d")
+        else:
+            return super()._fmt_var(variable)
+
+class SectionMeteo(Section):
+    description = "This block defines variables related to the input meteorological dataset. It is read by the SetDbs task"
+
+    f1 = FieldChoice(variable="METEO_DATA_FORMAT", default = 'WRF', options = ["WRF", "GFS", "ERA5", "ERA5ML", "IFS", "CARRA"])
+    f2 = FieldString(variable="METEO_DATA_DICTIONARY_FILE", default = 'WRF.tbl')
+    f3 = FieldString(variable="METEO_DATA_FILE", default = 'Example-8.0.wrf.nc')
+    f4 = FieldString(variable="METEO_ENSEMBLE_BASEPATH", default = '')
+    f5 = FieldString(variable="METEO_LEVELS_FILE", default = '../Other/Meteo/Tables/L137_ECMWF.levels')
+    f6 = FieldFloat(variable="DBS_BEGIN_METEO_DATA_(HOURS_AFTER_00)", default = 0)
+    f7 = FieldFloat(variable="DBS_END_METEO_DATA_(HOURS_AFTER_00)", default = 24)
+    f8 = FieldFloat(variable="METEO_COUPLING_INTERVAL_(MIN)", default = 60)
+    f9 = FieldInteger(variable="MEMORY_CHUNK_SIZE", default = 5)
+   
 class SectionGrid(Section):
     description = "This block defines the grid variables needed by the SetDbs and FALL3D tasks"
 
@@ -169,26 +184,27 @@ class SectionGrid(Section):
     f5  = FieldFloat  (variable="LATMIN", default = 36.5)
     f6  = FieldFloat  (variable="LATMAX", default = 38.5)
     f7  = FieldInteger(variable="NX", default = 50)
-    f8  = FieldBoolean(variable="NX", default = True, label='RESOLUTION')
+    f8  = FieldBoolean(variable="NX", default = False, label='RESOLUTION')
     f9  = FieldFloat  (variable="NX", default = 0.1)
     f10 = FieldInteger(variable="NY", default = 50)
-    f11 = FieldBoolean(variable="NY", default = True, label='RESOLUTION')
+    f11 = FieldBoolean(variable="NY", default = False, label='RESOLUTION')
     f12 = FieldFloat  (variable="NY", default = 0.1)
     f13 = FieldInteger(variable="NZ", default = 10)
     f14 = FieldFloat  (variable="ZMAX_(M)", default = 10000)
+    f15 = FieldFloat  (variable="SIGMA_VALUES", default = 10000) #TODO
 
     def _fmt_var(self,variable):
         if variable =='NX':
-            if self.f7.value:
-                value = self.f8.__str__()
+            if self.f8.value:
+                value = f"RESOLUTION {self['f9']}"
             else:
-                value = self.f9.__str__()
+                value = str(self['f7'])
             return f"{variable} = {value}"
         elif variable == 'NY':
-            if self.f10.value:
-                value = self.f11.__str__()
+            if self.f11.value:
+                value = f"RESOLUTION {self['f12']}"
             else:
-                value = self.f12.__str__()
+                value = str(self['f10'])
             return f"{variable} = {value}"
         else:
             return super()._fmt_var(variable)
@@ -202,12 +218,23 @@ class SectionSpecies(Section):
     f4  = FieldFloat  (variable="H2O", default = 2, label='MASS_FRACTION_(%)')
     f5  = FieldBoolean(variable="SO2", default = True)
     f6  = FieldFloat  (variable="SO2", default = 1, label='MASS_FRACTION_(%)')
+    f7  = FieldBoolean(variable="CS134", default = False)
+    f8  = FieldFloat  (variable="CS134", default = 0, label='MASS_FRACTION_(%)')
+    f9  = FieldBoolean(variable="CS137", default = False)
+    f10 = FieldFloat  (variable="CS137", default = 0, label='MASS_FRACTION_(%)')
+    f11 = FieldBoolean(variable="I131", default = False)
+    f12 = FieldFloat  (variable="I131", default = 0, label='MASS_FRACTION_(%)')
+    f13 = FieldBoolean(variable="SR90", default = False)
+    f14 = FieldFloat  (variable="SR90", default = 0, label='MASS_FRACTION_(%)')
+    f15 = FieldBoolean(variable="Y90", default = False)
+    f16 = FieldFloat  (variable="Y90", default = 0, label='MASS_FRACTION_(%)')
 
 def get_sections():
     config = {
-            'TIME_UTC': SectionTime(),
-            'GRID':     SectionGrid(),
-            'SPECIES':  SectionSpecies(),
+            'TIME_UTC':   SectionTime(),
+            'METEO_DATA': SectionMeteo(),
+            'GRID':       SectionGrid(),
+            'SPECIES':    SectionSpecies(),
             }
     return config
 
@@ -231,6 +258,6 @@ if __name__ == "__main__":
         f.write(out)
 
     for label,section in config.items():
-        print(label)
-        for k,field in section.data.items():
-            print(k)
+        print(section)
+#        for k,field in section.data.items():
+#            print(k)

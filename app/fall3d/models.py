@@ -14,6 +14,7 @@ class ProfileModel(db.Model):
     def set_default(self):
     
         self.blocks.append(TIME_UTC()) 
+        self.blocks.append(METEO_DATA()) 
         self.blocks.append(GRID()) 
         self.blocks.append(SPECIES()) 
 
@@ -79,9 +80,92 @@ class TIME_UTC (ConfigurationModel):
         default = 'Example-8.0.rst.nc')
     
     
+    f6 = db.Column(db.String, 
+        
+        info = {'label': 'RESTART_ENSEMBLE_BASEPATH'}, 
+        
+        default = './')
+    
+    
 
     __mapper_args__ = {
         'polymorphic_identity': 'TIME_UTC'
+    }
+
+class METEO_DATA (ConfigurationModel):
+    __tablename__ = "METEO_DATA"
+
+    id = db.Column(db.Integer, 
+                   db.ForeignKey('block.id'), 
+                   primary_key=True)
+
+    
+    f1 = db.Column(ChoiceType([('WRF', 'WRF'), ('GFS', 'GFS'), ('ERA5', 'ERA5'), ('ERA5ML', 'ERA5ML'), ('IFS', 'IFS'), ('CARRA', 'CARRA')]), 
+        
+        info = {'label': 'METEO_DATA_FORMAT'}, 
+        
+        default = 'WRF')
+    
+    
+    f2 = db.Column(db.String, 
+        
+        info = {'label': 'METEO_DATA_DICTIONARY_FILE'}, 
+        
+        default = 'WRF.tbl')
+    
+    
+    f3 = db.Column(db.String, 
+        
+        info = {'label': 'METEO_DATA_FILE'}, 
+        
+        default = 'Example-8.0.wrf.nc')
+    
+    
+    f4 = db.Column(db.String, 
+        
+        info = {'label': 'METEO_ENSEMBLE_BASEPATH'}, 
+        
+        default = '')
+    
+    
+    f5 = db.Column(db.String, 
+        
+        info = {'label': 'METEO_LEVELS_FILE'}, 
+        
+        default = '../Other/Meteo/Tables/L137_ECMWF.levels')
+    
+    
+    f6 = db.Column(db.Float, 
+        
+        info = {'label': 'DBS_BEGIN_METEO_DATA_(HOURS_AFTER_00)'}, 
+        
+        default = 0)
+    
+    
+    f7 = db.Column(db.Float, 
+        
+        info = {'label': 'DBS_END_METEO_DATA_(HOURS_AFTER_00)'}, 
+        
+        default = 24)
+    
+    
+    f8 = db.Column(db.Float, 
+        
+        info = {'label': 'METEO_COUPLING_INTERVAL_(MIN)'}, 
+        
+        default = 60)
+    
+    
+    f9 = db.Column(db.Integer, 
+        
+        info = {'label': 'MEMORY_CHUNK_SIZE'}, 
+        
+        default = 5)
+    
+    
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'METEO_DATA'
     }
 
 class GRID (ConfigurationModel):
@@ -144,7 +228,7 @@ class GRID (ConfigurationModel):
         
         info = {'label': 'RESOLUTION'}, 
         
-        default = True)
+        default = False)
     
     f9 = db.Column(db.Float, 
         
@@ -163,7 +247,7 @@ class GRID (ConfigurationModel):
         
         info = {'label': 'RESOLUTION'}, 
         
-        default = True)
+        default = False)
     
     f12 = db.Column(db.Float, 
         
@@ -182,6 +266,13 @@ class GRID (ConfigurationModel):
     f14 = db.Column(db.Float, 
         
         info = {'label': 'ZMAX_(M)'}, 
+        
+        default = 10000)
+    
+    
+    f15 = db.Column(db.Float, 
+        
+        info = {'label': 'SIGMA_VALUES'}, 
         
         default = 10000)
     
@@ -237,6 +328,71 @@ class SPECIES (ConfigurationModel):
         info = {'label': 'MASS_FRACTION_(%)'}, 
         
         default = 1)
+    
+    
+    f7 = db.Column(db.Boolean, 
+        
+        info = {'label': 'CS134'}, 
+        
+        default = False)
+    
+    f8 = db.Column(db.Float, 
+        
+        info = {'label': 'MASS_FRACTION_(%)'}, 
+        
+        default = 0)
+    
+    
+    f9 = db.Column(db.Boolean, 
+        
+        info = {'label': 'CS137'}, 
+        
+        default = False)
+    
+    f10 = db.Column(db.Float, 
+        
+        info = {'label': 'MASS_FRACTION_(%)'}, 
+        
+        default = 0)
+    
+    
+    f11 = db.Column(db.Boolean, 
+        
+        info = {'label': 'I131'}, 
+        
+        default = False)
+    
+    f12 = db.Column(db.Float, 
+        
+        info = {'label': 'MASS_FRACTION_(%)'}, 
+        
+        default = 0)
+    
+    
+    f13 = db.Column(db.Boolean, 
+        
+        info = {'label': 'SR90'}, 
+        
+        default = False)
+    
+    f14 = db.Column(db.Float, 
+        
+        info = {'label': 'MASS_FRACTION_(%)'}, 
+        
+        default = 0)
+    
+    
+    f15 = db.Column(db.Boolean, 
+        
+        info = {'label': 'Y90'}, 
+        
+        default = False)
+    
+    f16 = db.Column(db.Float, 
+        
+        info = {'label': 'MASS_FRACTION_(%)'}, 
+        
+        default = 0)
     
     
 

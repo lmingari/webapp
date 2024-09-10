@@ -5,8 +5,8 @@
 <div class="container-fluid">
     <h2>Profile panel</h2>
 
-    <div class="row justify-content-md-center">
-    <div class="col col-lg-6">
+<div class="row">
+    <div class="col-4">
     <div class="card">
         <div class="card-header bg-primary text-white">Add new profile</div>
         <div class="card-body">
@@ -20,9 +20,8 @@
         </div>
     </div>
     </div>
-    </div>
-    <br>
 
+    <div class="col">
     <div class="card">
         <div class="card-header bg-primary text-white">Profile list</div>
         <div class="card-body">
@@ -56,8 +55,10 @@
                         <td>{{profile.title}}</td>
                         <td>{{profile.description}}</td>
                         <td>
-                            <a href="{{ url_for('profiles.load',id=profile.id) }}"   type="button" class="btn btn-success">Load</a>
-                            <a href="{{ url_for('profiles.delete',id=profile.id) }}" type="button" class="btn btn-danger">Delete</a> 
+                            <div class="btn-group-vertical">
+                            <a href="{{ url_for('profiles.load',id=profile.id) }}"   class="btn btn-success">Load</a>
+                            <a href="{{ url_for('profiles.delete',id=profile.id) }}" class="btn btn-danger">Delete</a> 
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -66,7 +67,8 @@
             </table>
         </div>
     </div>
-
+    </div>
+</div>
 </div>
 
 {% endblock %}

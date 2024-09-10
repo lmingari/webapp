@@ -1,5 +1,10 @@
 {% from "macros/forms.html" import render_form_field, render_form_fields %}
 {%extends "base.html" %} 
+
+{% block header -%}
+  <script src="{{ url_for('static', filename='myFunctions.js') }}"></script>
+{% endblock %}
+
 {%block content%} 
 
 <div class="container-fluid">
@@ -18,10 +23,12 @@
       {% endfor %}
   </ul>
 
-  <div class="card" style="width:600px">
+  <div class="row">
+  <div class="col">
+  <div class="card">
       <div class="card-header bg-primary text-white">Run configuration</div>
       <div class="card-body">
-          <form method="POST">
+          <form id="{{ block }}" method="POST">
               {{ form.hidden_tag() }}
               {% for v,keys in config[block].data_var.items() %}
               <div class="input-group mb-3">
@@ -32,6 +39,21 @@
           </form>
       </div>
   </div>
+  </div>
+  <div class="col">
+  <div class="card">
+      <div class="card-header bg-primary text-white">Preview</div>
+      <div class="card-body">
+          <pre>
+          <code>
+              {{config[block]}}
+          </code>
+          </pre>
+      </div>
+  </div>
+  </div>
+  </div>
+
 </div>
 
 <p> Debug: </p>
@@ -45,4 +67,26 @@
 
 {%block scripts%} 
   document.querySelector('#menu-conf .nav-link').classList.add('active');
+  {% if block == "GRID" %}
+  document.getElementById("f8").addEventListener( "change", function() {disablePN('f7','f8','f9'); });
+  document.getElementById("f11").addEventListener("change", function() {disablePN('f10','f11','f12'); });
+  document.addEventListener('DOMContentLoaded', function() {disablePN('f7','f8','f9'); });
+  document.addEventListener('DOMContentLoaded', function() {disablePN('f10','f11','f12'); });
+  {% elif block == "SPECIES" %}
+  document.getElementById("f3").addEventListener("change", function() {disableN('f3','f4'); });
+  document.getElementById("f5").addEventListener("change", function() {disableN('f5','f6'); });
+  document.getElementById("f7").addEventListener("change", function() {disableN('f7','f8'); });
+  document.getElementById("f9").addEventListener("change", function() {disableN('f9','f10'); });
+  document.getElementById("f11").addEventListener("change", function() {disableN('f11','f12'); });
+  document.getElementById("f13").addEventListener("change", function() {disableN('f13','f14'); });
+  document.getElementById("f15").addEventListener("change", function() {disableN('f15','f16'); });
+  document.addEventListener('DOMContentLoaded', function() {disableN('f3','f4'); });
+  document.addEventListener('DOMContentLoaded', function() {disableN('f5','f6'); });
+  document.addEventListener('DOMContentLoaded', function() {disableN('f7','f8'); });
+  document.addEventListener('DOMContentLoaded', function() {disableN('f9','f10'); });
+  document.addEventListener('DOMContentLoaded', function() {disableN('f11','f12'); });
+  document.addEventListener('DOMContentLoaded', function() {disableN('f13','f14'); });
+  document.addEventListener('DOMContentLoaded', function() {disableN('f15','f16'); });
+  {% endif %}
+
 {% endblock %}
