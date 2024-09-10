@@ -37,4 +37,5 @@ def set(block):
                            form    = form, 
                            profile = p.title,
                            blocks  = blocks,
-                           block   = block)
+                           block   = block,
+                           config  = config)

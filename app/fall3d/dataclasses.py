@@ -55,10 +55,7 @@ class Field:
 
     def __init__(self,variable=None,label=None,block=None,default=None):
         self.variable = variable
-        if label is None:
-            self.label    = variable
-        else:
-            self.label    = label
+        self.label    = label
         self.block    = block
         self.default  = default
         self.value    = default
@@ -152,6 +149,7 @@ class Section(BaseClass):
         return output
 
 class SectionTime(Section):
+    description = "This block defines variables related to date and time. It is used by FALL3D, SetDbs, and SetSrc tasks"
 #    f1a = FieldInteger(variable="YEAR", default = 2008)
 #    f1b = FieldInteger(variable="MONTH", default = 4)
 #    f1c = FieldInteger(variable="DAY", default = 29)
@@ -162,6 +160,8 @@ class SectionTime(Section):
     f5 = FieldString(variable="RESTART_FILE", default = 'Example-8.0.rst.nc')
 
 class SectionGrid(Section):
+    description = "This block defines the grid variables needed by the SetDbs and FALL3D tasks"
+
     f1  = FieldChoice (variable="HORIZONTAL_MAPPING", default='SPHERICAL', options = ['CARTESIAN','SPHERICAL'])
     f2  = FieldChoice (variable="VERTICAL_MAPPING", default='SIGMA_LINEAR_DECAY', options = ["SIGMA_NO_DECAY","SIGMA_LINEAR_DECAY","SIGMA_EXPONENTIAL_DECAY"])
     f3  = FieldFloat  (variable="LONMIN", default = 14.0)
@@ -169,11 +169,11 @@ class SectionGrid(Section):
     f5  = FieldFloat  (variable="LATMIN", default = 36.5)
     f6  = FieldFloat  (variable="LATMAX", default = 38.5)
     f7  = FieldInteger(variable="NX", default = 50)
-    f8  = FieldFloat  (variable="NX", default = 0.1)
-    f9  = FieldBoolean(variable="NX", default = True, label='RESOLUTION')
+    f8  = FieldBoolean(variable="NX", default = True, label='RESOLUTION')
+    f9  = FieldFloat  (variable="NX", default = 0.1)
     f10 = FieldInteger(variable="NY", default = 50)
-    f11 = FieldFloat  (variable="NY", default = 0.1)
-    f12 = FieldBoolean(variable="NY", default = True, label='RESOLUTION')
+    f11 = FieldBoolean(variable="NY", default = True, label='RESOLUTION')
+    f12 = FieldFloat  (variable="NY", default = 0.1)
     f13 = FieldInteger(variable="NZ", default = 10)
     f14 = FieldFloat  (variable="ZMAX_(M)", default = 10000)
 
@@ -194,6 +194,8 @@ class SectionGrid(Section):
             return super()._fmt_var(variable)
 
 class SectionSpecies(Section):
+    description = "This block is used by FALL3D, SetTgsd, and SetSrc tasks and defines which species are modeled"
+    
     f1  = FieldBoolean(variable="TEPHRA", default = True)
     f2  = FieldBoolean(variable="DUST", default = False)
     f3  = FieldBoolean(variable="H2O", default = False)

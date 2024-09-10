@@ -1,13 +1,17 @@
 {% macro render_form_field(field) %}
-<div class="form-group">
     {% if field.type == 'BooleanField' %}
-        <div class="col-sm-offset-5 col-sm-3">
+        <div class="form-check mb-3">
         {{ field(class_="form-check-input") }}
         {{ field.label(class_="form-check-label") }}
         </div>
+    {% elif field.type == 'SelectField' %}
+        <div class="mb-3 mt-3">
+        {{ field.label(class_="form-label") }}
+        {{ field(class_="form-select") }}
+        </div>
     {% else %}
-        {{ field.label(class_="control-label col-sm-5") }}
-        <div class="col-sm-3">
+        <div class="mb-3 mt-3">
+        {{ field.label(class_="form-label") }}
         {{ field(class_="form-control") }}
         </div>
     {% endif %}
@@ -15,5 +19,41 @@
     {%- for error in field.errors %}
         <span class="text-danger">{{ error }}</span>
     {% endfor %}
-</div>
+{% endmacro %}
+
+{% macro render_form_fields(keys,form) %}
+{% for key in keys %}
+{% set field = form[key] %}
+{% if loop.first %}
+    {% if field.type == 'BooleanField' %}
+        <div class="form-check me-3">
+        {{ field(class_="form-check-input") }}
+        {{ field.label(class_="form-check-label") }}
+        </div>
+    {% else %}
+        <span class="input-group-text">{{field.label.text}}</span>
+        {% if field.type == 'SelectField' %}
+            {{ field(class_="form-select me-3") }}
+        {% else %}
+            {{ field(class_="form-control me-3") }}
+        {% endif %}
+    {% endif %}
+{% else %}
+    {% if field.type != 'BooleanField' %}
+        {% if field.label.text != "none" %}
+        {{ field.label(class_="form-label me-1") }}
+        {% endif %}
+        {% if field.type == 'SelectField' %}
+            {{ field(class_="form-select me-3") }}
+        {% else %}
+            {{ field(class_="form-control me-3") }}
+        {% endif %}
+    {% else %}
+        <div class="form-check">
+        {{ field(class_="form-check-input") }}
+        {{ field.label(class_="form-check-label me-3") }}
+        </div>
+    {% endif %}
+{% endif %}
+{% endfor %}
 {% endmacro %}

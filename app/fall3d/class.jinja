@@ -41,8 +41,18 @@ class {{slabel}} (ConfigurationModel):
                    db.ForeignKey('block.id'), 
                    primary_key=True)
 
-    {% for key,f in section.data.items() -%}
-    {{key}} = db.Column({{f.mtype}}, info = {'label': '{{f.label}}'}, default = {{ f.default|repr }})
+    {% for v,kfields in section.data_var.items() -%}
+    {% for key in kfields %}
+    {{key}} = db.Column({{section[key].mtype}}, 
+        {% if loop.first %}
+        info = {'label': '{{section[key].variable}}'}, 
+        {% elif section[key].label %}
+        info = {'label': '{{section[key].label}}'}, 
+        {% else %}
+        info = {'label': 'none'}, 
+        {% endif %}
+        default = {{ section[key].default|repr }})
+    {% endfor %}
     {% endfor %}
 
     __mapper_args__ = {

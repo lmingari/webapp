@@ -1,43 +1,37 @@
-{% from "macros/forms.html" import render_form_field %}
+{% from "macros/forms.html" import render_form_field, render_form_fields %}
 {%extends "base.html" %} 
 {%block content%} 
 
-<div class="container">
-  <h3>Configuration panel for profile <b class="mark">{{ profile }}</b> </h3>
+<div class="container-fluid">
+  <h2>Configuration panel for profile <b class="mark">{{ profile }}</b> </h2>
+  <br>
+  <p><strong>Note:</strong> {{config[block].description}}</p>
   <ul class="nav nav-pills">
       {% for item in blocks %}
-      {% if item==block %}
-      <li class="active">
-      {% else %}
-      <li>
-      {% endif %}
-      <a href="{{ url_for('configuration.set', block=item) }}">{{ item }}</a>
+      <li class="nav-item">
+          {% if item==block %}
+          <a class="nav-link active" href="{{ url_for('configuration.set', block=item) }}">{{ item }}</a>
+          {% else %}
+          <a class="nav-link" href="{{ url_for('configuration.set', block=item) }}">{{ item }}</a>
+          {% endif %}
       </li>
       {% endfor %}
   </ul>
-  <br>
-  <p><strong>Note:</strong> This example shows how to create a basic navigation tab. It is not toggleable/dynamic yet (you can't click on the links to display different content)- see the last example in the Bootstrap Tabs and Pills Tutorial to find out how this can be done.</p>
-</div>
 
-<div class="row">
-<div class="container">
-<div class="panel panel-primary">
-    <div class="panel-heading">Configuration run</div>
-    <div class="panel-body">
-        <form class="form-horizontal" method="POST">
-            <div class="form-container">
-                {{ form.hidden_tag() }}
-                {% for field in form if field.widget.input_type != 'hidden' %}
-                    {{ render_form_field(field) }}
-                {% endfor %}
-                <div class="col-sm-offset-5 col-sm-3">
-                <p><input type="submit" class="btn btn-default" value='Update'></p>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-</div>
+  <div class="card" style="width:600px">
+      <div class="card-header bg-primary text-white">Run configuration</div>
+      <div class="card-body">
+          <form method="POST">
+              {{ form.hidden_tag() }}
+              {% for v,keys in config[block].data_var.items() %}
+              <div class="input-group mb-3">
+                  {{ render_form_fields(keys,form) }}
+              </div>
+              {% endfor %}
+              <input type="submit" class="btn btn-primary" value='Update'>
+          </form>
+      </div>
+  </div>
 </div>
 
 <p> Debug: </p>
@@ -50,5 +44,5 @@
 {% endblock %}
 
 {%block scripts%} 
-  document.getElementById("menu-conf").classList.add('active');
+  document.querySelector('#menu-conf .nav-link').classList.add('active');
 {% endblock %}

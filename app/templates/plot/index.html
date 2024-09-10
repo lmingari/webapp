@@ -3,42 +3,39 @@
 {%block content%} 
 
 <div class="row">
-<div class="container">
-  <div class="panel panel-primary">
-    <div class="panel-heading">Plot configuration</div>
-    <div class="panel-body">
-        <form class="form-horizontal" method="POST">
-            <div class="form-container">
+    <h2>Plot panel for profile</h2>
+
+    <div class="col-sm-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">Plot configuration</div>
+        <div class="card-body">
+            <form method="POST">
                 {{ form.hidden_tag() }}
                 {% for field in form if field.widget.input_type != 'hidden' %}
-                    {{ render_form_field(field) }}
+                {{ render_form_field(field) }}
                 {% endfor %}
-                <div class="col-sm-offset-5 col-sm-3">
-                <p><input type="submit" class="btn btn-default" value='Plot'></p>
-                </div>
+                <input type="submit" class="btn btn-primary" value='Plot'>
+            </form>
+        </div>
+    </div>
+    </div>
+
+    <div class="col-sm-8">
+    <div class="card">
+        <div class="card-header bg-primary text-white">Plot view</div>
+        <div class="card-body">
+            {% if show_plot %}
+            <div class="thumbnail">
+                <img src="{{ url_for('static', filename='output.png') }}" alt="FALL3D output" style="width:100%">
             </div>
-        </form>
+            {% else %}
+            <p>No plot</p>
+            {% endif %}
+        </div>
     </div>
-  </div>
-</div>
-</div>
-
-<div class="row">
-  <div class="container">
-  <div class="panel panel-primary">
-    <div class="panel-heading">Plot View</div>
-    <div class="panel-body">
-      {% if show_plot %}
-      <div class="thumbnail">
-      <img src="{{ url_for('static', filename='output.png') }}" alt="FALL3D output" style="width:100%">
-      </div>
-      {% else %}
-      <p>No plot</p>
-      {% endif %}
     </div>
-  </div>
-  </div>
 
+</div>
 </div>
 
 <p> Debug: </p>
@@ -51,5 +48,5 @@
 {% endblock %}
 
 {%block scripts%} 
-  document.getElementById("menu-plot").classList.add('active');
+  document.querySelector('#menu-plot .nav-link').classList.add('active');
 {% endblock %}

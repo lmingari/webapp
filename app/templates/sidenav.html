@@ -1,8 +1,8 @@
 <h2>Logo</h2>
-<ul class="nav nav-pills nav-stacked">
-  <li id="menu-home"><a href="{{ url_for('main.index') }}" >Home</a></li>
-  <li id="menu-prof"><a href="{{ url_for('profiles.index') }}" >Profiles</a></li>
-  <li id="menu-conf"><a href="{{ url_for('configuration.index') }}">Configuration</a></li>
-  <li id="menu-run" ><a href="{{ url_for('run.index') }}" >Run</a></li>
-  <li id="menu-plot"><a href="{{ url_for('plot.index') }}" >Plot</a></li>
+<ul class="nav flex-column nav-pills">
+  <li class="nav-item" id="menu-home"><a class = "nav-link" href="{{ url_for('main.index') }}" >Home</a></li>
+  <li class="nav-item" id="menu-prof"><a class = "nav-link" href="{{ url_for('profiles.index') }}" >Profiles</a></li>
+  <li class="nav-item" id="menu-conf"><a class = "nav-link" href="{{ url_for('configuration.index') }}">Configuration</a></li>
+  <li class="nav-item" id="menu-run" ><a class = "nav-link" href="{{ url_for('run.index') }}" >Run</a></li>
+  <li class="nav-item" id="menu-plot"><a class = "nav-link" href="{{ url_for('plot.index') }}" >Plot</a></li>
 </ul><br>

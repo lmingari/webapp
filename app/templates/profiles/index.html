@@ -2,83 +2,75 @@
 {%extends "base.html" %} 
 {%block content%} 
 
-<div class="row">
-<div class="container">
-<div class="panel panel-primary">
-    <div class="panel-heading">Add new profile</div>
-    <div class="panel-body">
-        <form class="form-horizontal" method="POST">
-            <div class="form-container">
+<div class="container-fluid">
+    <h2>Profile panel</h2>
+
+    <div class="row justify-content-md-center">
+    <div class="col col-lg-6">
+    <div class="card">
+        <div class="card-header bg-primary text-white">Add new profile</div>
+        <div class="card-body">
+            <form method="POST">
                 {{ form.hidden_tag() }}
                 {% for field in form if field.widget.input_type != 'hidden' %}
-                    {{ render_form_field(field) }}
+                {{ render_form_field(field) }}
                 {% endfor %}
-                <div class="col-sm-offset-5 col-sm-3">
-                <p><input type="submit" class="btn btn-default" value="Add profile"></p>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-</div>
-</div>
-
-<div class="row">
-<div class="container">
-<div class="panel panel-primary">
-    <div class="panel-heading">Profile list</div>
-    <div class="panel-body">
-
-    <table class="table">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Title</th>
-        <th>Description</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-
-    {% if not active %}
-        <div class="alert alert-danger" role="alert">
-            No active profile!
+                <input type="submit" class="btn btn-primary" value="Add profile">
+            </form>
         </div>
-    {% endif %}
-
-    {% if profiles|length == 0 %}
-        <div class="alert alert-danger" role="alert">
-            No Profile Found. Add your first profile now!
-        </div>
-    {% else %}
-        {% for profile in profiles %}
-        {% if profile.id == active %}
-        <tr class="info">
-        {% else %}
-        <tr>
-        {% endif %}
-            <td>{{loop.index}}</td>
-            <td>{{profile.title}}</td>
-            <td>{{profile.description}}</td>
-            <td>
-                <a href="{{ url_for('profiles.load',id=profile.id) }}"   type="button" class="btn btn-success">Load</a>
-                <a href="{{ url_for('profiles.delete',id=profile.id) }}" type="button" class="btn btn-danger">Delete</a> 
-            </td>
-        </tr>
-        {% endfor %}
-    {% endif %}
-
-
-    </tbody>
-  </table>
-
     </div>
-</div>
-</div>
+    </div>
+    </div>
+    <br>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">Profile list</div>
+        <div class="card-body">
+            <table class="table">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if not active %}
+                    <div class="alert alert-danger">
+                        No active profile!
+                    </div>
+                    {% endif %}
+                    {% if profiles|length == 0 %}
+                    <div class="alert alert-danger">
+                        No Profile Found. Add your first profile now!
+                    </div>
+                    {% else %}
+                    {% for profile in profiles %}
+                    {% if profile.id == active %}
+                    <tr class="table-success">
+                    {% else %}
+                    <tr>
+                    {% endif %}
+                        <td>{{loop.index}}</td>
+                        <td>{{profile.title}}</td>
+                        <td>{{profile.description}}</td>
+                        <td>
+                            <a href="{{ url_for('profiles.load',id=profile.id) }}"   type="button" class="btn btn-success">Load</a>
+                            <a href="{{ url_for('profiles.delete',id=profile.id) }}" type="button" class="btn btn-danger">Delete</a> 
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
 </div>
 
 {% endblock %}
 
 {%block scripts%} 
-  document.getElementById("menu-prof").classList.add('active');
+  document.querySelector('#menu-prof .nav-link').classList.add('active');
 {% endblock %}
