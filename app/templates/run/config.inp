@@ -1,6 +1,10 @@
-{%- for slabel,section in sections.items() %}
- -----------
-{{slabel}}
- -----------
+ ----
+ CODE
+ ----
+   VERSION 8.3
+{% for slabel,section in sections.items() %}
+ {{ "-"* slabel|length }}
+ {{slabel}}
+ {{ "-"* slabel|length }}
 {{section}}
 {% endfor %} 

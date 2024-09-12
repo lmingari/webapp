@@ -31,7 +31,7 @@
         {{ field.label(class_="form-check-label") }}
         </div>
     {% else %}
-        <span class="input-group-text">{{field.label.text}}</span>
+        <span class="input-group-text" data-bs-toggle="tooltip" title="Hooray!">{{field.label.text}}</span>
         {% if field.type == 'SelectField' %}
             {{ field(class_="form-select me-3") }}
         {% else %}

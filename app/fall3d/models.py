@@ -67,7 +67,7 @@ class TIME_UTC (ConfigurationModel):
         
         info = {'label': 'RUN_END_(HOURS_AFTER_00)'}, 
         
-        default = 10)
+        default = 24)
     
     
     f4 = db.Column(ChoiceType([('NONE', 'NONE'), ('INSERTION', 'INSERTION'), ('RESTART', 'RESTART')]), 
@@ -623,7 +623,7 @@ class SOURCE (ConfigurationModel):
         
         info = {'label': 'MASS_FLOW_RATE_(KGS)'}, 
         
-        default = 'ESTIMATE-DEGRUYTER')
+        default = 'ESTIMATE-MASTIN')
     
     f9 = db.Column(db.Float, 
         

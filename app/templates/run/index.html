@@ -23,14 +23,7 @@
             <div class="card-header bg-primary text-white">Configuration file</div>
             <div class="card-body">
 <pre>
-<code>
-{%- for slabel,section in sections.items() %}
------------
-{{slabel}}
------------
-{{section}}
-{% endfor %} 
-</code> 
+<code>{% include 'run/config.inp' %}</code> 
 </pre>
             </div>
         </div>

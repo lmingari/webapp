@@ -144,18 +144,20 @@ class Section(BaseClass):
         b1 = " "
         b3 = b1*3
         b6 = b1*6
-        output = ""
-        seen = set()
-        for key in self.vars:
-            (_,block) = key
+
+        blocks_str = OrderedDict()
+        for index in self.vars:
+            (_,block) = index
+            if not block in blocks_str:
+                blocks_str[block] = ""
+            blocks_str[block] += self._fmt_var(index)+nl
+
+        for block,block_str in blocks_str.items():
             if block is None:
-                output += b3+self._fmt_var(key)+nl
-            elif block in seen:
-                output += b6+self._fmt_var(key)+nl
+                output = nl.join([b3+item for item in block_str.splitlines()])
             else:
-                seen.add(block)
-                output += nl+b1+block+nl
-                output += b6+self._fmt_var(key)+nl
+                output += nl*2 + b3 + block + nl
+                output += nl.join([b6+item for item in block_str.splitlines()])
         return output
 
     def update_from_obj(self,obj):
