@@ -14,6 +14,7 @@ class OrderedMeta(type):
 class BaseClass(object, metaclass=OrderedMeta):
     def __init__(self, fields=None):
         self._fields = OrderedDict()
+        self._vars   = OrderedDict()
 
         # get class variables
         for key in self.__class__._attr_order:
@@ -25,6 +26,14 @@ class BaseClass(object, metaclass=OrderedMeta):
         if hasattr(fields, 'items'):
             for name, field in fields.items():
                 self._fields[name] = field
+
+        seen = set()
+        for key,item in self._fields.items():
+            v = (item.variable,item.block)
+            if v not in seen:
+                seen.add(v)
+                self._vars[v] = []
+            self._vars[v].append(key)
 
     def __iter__(self):
         """Iterate form fields in creation order."""
@@ -47,8 +56,12 @@ class BaseClass(object, metaclass=OrderedMeta):
         del self._fields[name]
 
     @property
-    def data(self):
+    def fields(self):
         return self._fields
+
+    @property
+    def vars(self):
+        return self._vars
 
 class Field:
     _field = True
@@ -120,46 +133,52 @@ class FieldChoice(Field):
 
 class Section(BaseClass):
 
-    def _fmt_var(self,variable):
-        strings = [item.__str__() for item in self if item.variable==variable]
+    def _fmt_var(self,index):
+        (variable,_) = index
+        strings = [str(self[field]) for field in self.vars[index]]
         value = " ".join(strings)
         return f"{variable} = {value}"
 
     def __str__(self):
-        output = "\n"
-        for v in self.data_var:
-            output += self._fmt_var(v)+'\n'
+        nl = "\n"
+        b1 = " "
+        b3 = b1*3
+        b6 = b1*6
+        output = ""
+        seen = set()
+        for key in self.vars:
+            (_,block) = key
+            if block is None:
+                output += b3+self._fmt_var(key)+nl
+            elif block in seen:
+                output += b6+self._fmt_var(key)+nl
+            else:
+                seen.add(block)
+                output += nl+b1+block+nl
+                output += b6+self._fmt_var(key)+nl
         return output
 
-    @property
-    def data_var(self):
-        output = {}
-        seen = set()
-        for key,item in self._fields.items():
-            v = item.variable
-            if v not in seen:
-                seen.add(v)
-                output[v] = []
-            output[v].append(key)
-        return output
+    def update_from_obj(self,obj):
+        for key, field in self.fields.items():
+            if hasattr(obj, key):
+                value = getattr(obj,key)
+                self[key].value = value
 
 class SectionTime(Section):
     description = "This block defines variables related to date and time. It is used by FALL3D, SetDbs, and SetSrc tasks"
-#    f1a = FieldInteger(variable="YEAR", default = 2008)
-#    f1b = FieldInteger(variable="MONTH", default = 4)
-#    f1c = FieldInteger(variable="DAY", default = 29)
+
     f1 = FieldDate(variable="DATE", default = date(2008,4,29))
     f2 = FieldFloat(variable="RUN_START_(HOURS_AFTER_00)", default = 0)
-    f3 = FieldFloat(variable="RUN_END_(HOURS_AFTER_00)", default = 10)
+    f3 = FieldFloat(variable="RUN_END_(HOURS_AFTER_00)", default = 24)
     f4 = FieldChoice(variable="INITIAL_CONDITION", default = 'NONE', options = ['NONE','INSERTION','RESTART'])
     f5 = FieldString(variable="RESTART_FILE", default = 'Example-8.0.rst.nc')
     f6 = FieldString(variable="RESTART_ENSEMBLE_BASEPATH", default = './')
 
-    def _fmt_var(self,variable):
-        if variable =='DATE':
+    def _fmt_var(self,index):
+        if index ==('DATE',None):
             return self.f1.value.strftime("YEAR = %Y \nMONTH = %m\nDAY = %d")
         else:
-            return super()._fmt_var(variable)
+            return super()._fmt_var(index)
 
 class SectionMeteo(Section):
     description = "This block defines variables related to the input meteorological dataset. It is read by the SetDbs task"
@@ -193,21 +212,21 @@ class SectionGrid(Section):
     f14 = FieldFloat  (variable="ZMAX_(M)", default = 10000)
     f15 = FieldFloat  (variable="SIGMA_VALUES", default = 10000) #TODO
 
-    def _fmt_var(self,variable):
-        if variable =='NX':
+    def _fmt_var(self,index):
+        if index == ('NX',None):
             if self.f8.value:
                 value = f"RESOLUTION {self['f9']}"
             else:
                 value = str(self['f7'])
-            return f"{variable} = {value}"
-        elif variable == 'NY':
+            return f"NX = {value}"
+        elif index == ('NY',None):
             if self.f11.value:
                 value = f"RESOLUTION {self['f12']}"
             else:
                 value = str(self['f10'])
-            return f"{variable} = {value}"
+            return f"NY = {value}"
         else:
-            return super()._fmt_var(variable)
+            return super()._fmt_var(index)
 
 class SectionSpecies(Section):
     description = "This block is used by FALL3D, SetTgsd, and SetSrc tasks and defines which species are modeled"
@@ -229,12 +248,77 @@ class SectionSpecies(Section):
     f15 = FieldBoolean(variable="Y90", default = False)
     f16 = FieldFloat  (variable="Y90", default = 0, label='MASS_FRACTION_(%)')
 
+class SectionTGSD(Section):
+    description = "These blocks define the TGSD for each species and are used by the SetTgsd task to generate some basic distributions"
+
+    f1  = FieldInteger(variable="NUMBER_OF_BINS", default = 6)
+    f2  = FieldString(variable="FI_RANGE", default = "-2 8")
+    f3  = FieldString(variable="DENSITY_RANGE", default = "1200 2300")
+    f4  = FieldString(variable="SPHERICITY_RANGE", default = "0.9 0.9")
+    f5  = FieldChoice(variable="DISTRIBUTION", default = 'GAUSSIAN', options = ["GAUSSIAN","BIGAUSSIAN","WEIBULL","BIWEIBULL","CUSTOM","ESTIMATE"])
+    f6  = FieldFloat(variable="FI_MEAN", block="IF_GAUSSIAN", default = 2.5)
+    f7  = FieldFloat(variable="FI_DISP", block="IF_GAUSSIAN", default = 1.5)
+    f8  = FieldString(variable="FI_MEAN", block="IF_BIGAUSSIAN", default = "0.25 0.75")
+    f9  = FieldString(variable="FI_DISP", block="IF_BIGAUSSIAN", default = "1.44 1.46")
+    f10 = FieldFloat(variable="MIXING_FACTOR", block="IF_BIGAUSSIAN", default = 0.5)
+
+class SectionAggregation(Section):
+    description = "This block is used by task SetSrc and controls particle aggregation and cut-off (for categories particles and radionuclides only)"
+
+    f1 = FieldChoice(variable="PARTICLE_CUT_OFF", default = 'NONE', options = ["NONE","FI_LOWER_THAN","FI_LARGER_THAN","D_(MIC)_LARGER_THAN","D_(MIC)_LOWER_THAN"])
+    f2 = FieldFloat(variable="PARTICLE_CUT_OFF", default = 1.)
+    f3 = FieldChoice(variable="AGGREGATION_MODEL", default = 'PERCENTAGE', options = ['NONE','CORNELL','COSTA','PERCENTAGE'])
+    f4 = FieldInteger(variable="NUMBER_OF_AGGREGATE_BINS", default = 2)
+    f5 = FieldString(variable="DIAMETER_AGGREGATES_(MIC)", default = "300. 200.")
+    f6 = FieldString(variable="DENSITY_AGGREGATES_(KGM3)", default = "350. 250.")
+    f7 = FieldString(variable="PERCENTAGE_(%)", default = "20. 10.")
+    f8 = FieldFloat(variable="VSET_FACTOR", default = "0.5")
+    f9 = FieldFloat(variable="FRACTAL_EXPONENT", default = "2.99")
+
+    def _fmt_var(self,index):
+        if index ==('PARTICLE_CUT_OFF',None) and self.f1.value == 'NONE':
+            return "PARTICLE_CUT_OFF = NONE"
+        else:
+            return super()._fmt_var(index)
+
+class SectionSource(Section):
+    description = "This block defines the variables needed by the SetSrc task to generate the source term for the emission phases"
+
+    f1  = FieldChoice(variable="SOURCE_TYPE", default = 'TOP-HAT', options = ['POINT','SUZUKI','TOP-HAT','PLUME'])
+    f2  = FieldFloat(variable="SOURCE_START_(HOURS_AFTER_00)", default = 0)
+    f3  = FieldFloat(variable="SOURCE_END_(HOURS_AFTER_00)", default = 10)
+    f4  = FieldFloat(variable="LON_VENT", default = 15.0)
+    f5  = FieldFloat(variable="LAT_VENT", default = 37.75)
+    f6  = FieldFloat(variable="VENT_HEIGHT_(M)", default = 3000.)
+    f7  = FieldFloat(variable="HEIGHT_ABOVE_VENT_(M)", default = 6000.)
+    f8  = FieldChoice(variable="MASS_FLOW_RATE_(KGS)", default = 'ESTIMATE-MASTIN', options = ['value','ESTIMATE-MASTIN','ESTIMATE-WOODHOUSE','ESTIMATE-DEGRUYTER'])
+    f9  = FieldFloat(variable="MASS_FLOW_RATE_(KGS)", default = 1E7)
+    f10 = FieldFloat(variable="ALFA_PLUME", default = 0.1)
+    f11 = FieldFloat(variable="BETA_PLUME", default = 0.5)
+    f12 = FieldFloat(variable="EXIT_TEMPERATURE_(K)", default = 1200.)
+    f13 = FieldFloat(variable="EXIT_WATER_FRACTION_(%)", default = 0.)
+    f14 = FieldFloat(variable="A", block="IF_SUZUKI_SOURCE", default = 4)
+    f15 = FieldFloat(variable="L", block="IF_SUZUKI_SOURCE", default = 5)
+    f16 = FieldFloat(variable="THICKNESS_(M)", block="IF_TOP-HAT_SOURCE", default = 2000.)
+
+    def _fmt_var(self,index):
+        if 'f8' in self.vars[index]:
+            if self['f8'].value == 'value':
+                return f"MASS_FLOW_RATE_(KGS) = {self['f9']}"
+            else:
+                return f"MASS_FLOW_RATE_(KGS) = {self['f8']}"
+        else:
+            return super()._fmt_var(index)
+
 def get_sections():
     config = {
-            'TIME_UTC':   SectionTime(),
-            'METEO_DATA': SectionMeteo(),
-            'GRID':       SectionGrid(),
-            'SPECIES':    SectionSpecies(),
+            'TIME_UTC':             SectionTime(),
+            'METEO_DATA':           SectionMeteo(),
+            'GRID':                 SectionGrid(),
+            'SPECIES':              SectionSpecies(),
+            'TEPHRA_TGSD':          SectionTGSD(),
+            'PARTICLE_AGGREGATION': SectionAggregation(),
+            'SOURCE':               SectionSource(),
             }
     return config
 
@@ -258,6 +342,5 @@ if __name__ == "__main__":
         f.write(out)
 
     for label,section in config.items():
+        print("*** ",label," ***")
         print(section)
-#        for k,field in section.data.items():
-#            print(k)

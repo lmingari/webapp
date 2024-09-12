@@ -10,8 +10,8 @@
 <div class="container-fluid">
   <h2>Configuration panel for profile <b class="mark">{{ profile }}</b> </h2>
   <br>
-  <p><strong>Note:</strong> {{config[block].description}}</p>
-  <ul class="nav nav-pills">
+  <p><strong>Note:</strong> {{section.description}}</p>
+  <ul class="nav nav-pills pb-3">
       {% for item in blocks %}
       <li class="nav-item">
           {% if item==block %}
@@ -28,9 +28,15 @@
   <div class="card">
       <div class="card-header bg-primary text-white">Run configuration</div>
       <div class="card-body">
-          <form id="{{ block }}" method="POST">
+          <form method="POST">
               {{ form.hidden_tag() }}
-              {% for v,keys in config[block].data_var.items() %}
+              {% for v,keys in section.vars.items() %}
+              {% if loop.changed(v[1]) %}
+              {% if not loop.first %}
+              <hr class="mt-5 mb-1"/>
+              {{ v[1] }}
+              {% endif %}
+              {% endif %}
               <div class="input-group mb-3">
                   {{ render_form_fields(keys,form) }}
               </div>
@@ -44,11 +50,7 @@
   <div class="card">
       <div class="card-header bg-primary text-white">Preview</div>
       <div class="card-body">
-          <pre>
-          <code>
-              {{config[block]}}
-          </code>
-          </pre>
+          <pre><code>{{section}}</code></pre>
       </div>
   </div>
   </div>
@@ -87,6 +89,9 @@
   document.addEventListener('DOMContentLoaded', function() {disableN('f11','f12'); });
   document.addEventListener('DOMContentLoaded', function() {disableN('f13','f14'); });
   document.addEventListener('DOMContentLoaded', function() {disableN('f15','f16'); });
+  {% elif block == "PARTICLE_AGGREGATION" %}
+  document.getElementById("f1").addEventListener("change", function() {tdisableN('f1','f2'); });
+  document.addEventListener('DOMContentLoaded', function() {tdisableN('f1','f2'); });
   {% endif %}
 
 {% endblock %}

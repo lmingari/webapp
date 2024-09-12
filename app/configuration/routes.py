@@ -33,9 +33,10 @@ def set(block):
         form.populate_obj(block_obj)
         db.session.commit()
         flash(f"Updated block: {block}")
+    config[block].update_from_obj(block_obj)
     return render_template('configuration/index.html',
                            form    = form, 
                            profile = p.title,
                            blocks  = blocks,
                            block   = block,
-                           config  = config)
+                           section = config[block])

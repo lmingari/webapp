@@ -10,13 +10,17 @@ class ProfileModel(db.Model):
     description = db.Column(db.Text)
 
     blocks      = db.relationship('ConfigurationModel',
-                                  backref = 'profile')
+                                  backref = 'profile',
+                                  cascade = 'all, delete')
     def set_default(self):
     
         self.blocks.append(TIME_UTC()) 
         self.blocks.append(METEO_DATA()) 
         self.blocks.append(GRID()) 
         self.blocks.append(SPECIES()) 
+        self.blocks.append(TEPHRA_TGSD()) 
+        self.blocks.append(PARTICLE_AGGREGATION()) 
+        self.blocks.append(SOURCE()) 
 
     def __repr__(self):
         return f'<Profile "{self.title}">'
@@ -26,7 +30,7 @@ class ConfigurationModel(db.Model):
 
     id   = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String)
-    prof_id = db.Column(db.Integer, db.ForeignKey('profiles.id'))
+    prof_id = db.Column(db.Integer, db.ForeignKey('profiles.id'), nullable=False)
 
     __mapper_args__ = {
         'polymorphic_identity': 'block',
@@ -398,4 +402,286 @@ class SPECIES (ConfigurationModel):
 
     __mapper_args__ = {
         'polymorphic_identity': 'SPECIES'
+    }
+
+class TEPHRA_TGSD (ConfigurationModel):
+    __tablename__ = "TEPHRA_TGSD"
+
+    id = db.Column(db.Integer, 
+                   db.ForeignKey('block.id'), 
+                   primary_key=True)
+
+    
+    f1 = db.Column(db.Integer, 
+        
+        info = {'label': 'NUMBER_OF_BINS'}, 
+        
+        default = 6)
+    
+    
+    f2 = db.Column(db.String, 
+        
+        info = {'label': 'FI_RANGE'}, 
+        
+        default = '-2 8')
+    
+    
+    f3 = db.Column(db.String, 
+        
+        info = {'label': 'DENSITY_RANGE'}, 
+        
+        default = '1200 2300')
+    
+    
+    f4 = db.Column(db.String, 
+        
+        info = {'label': 'SPHERICITY_RANGE'}, 
+        
+        default = '0.9 0.9')
+    
+    
+    f5 = db.Column(ChoiceType([('GAUSSIAN', 'GAUSSIAN'), ('BIGAUSSIAN', 'BIGAUSSIAN'), ('WEIBULL', 'WEIBULL'), ('BIWEIBULL', 'BIWEIBULL'), ('CUSTOM', 'CUSTOM'), ('ESTIMATE', 'ESTIMATE')]), 
+        
+        info = {'label': 'DISTRIBUTION'}, 
+        
+        default = 'GAUSSIAN')
+    
+    
+    f6 = db.Column(db.Float, 
+        
+        info = {'label': 'FI_MEAN'}, 
+        
+        default = 2.5)
+    
+    
+    f7 = db.Column(db.Float, 
+        
+        info = {'label': 'FI_DISP'}, 
+        
+        default = 1.5)
+    
+    
+    f8 = db.Column(db.String, 
+        
+        info = {'label': 'FI_MEAN'}, 
+        
+        default = '0.25 0.75')
+    
+    
+    f9 = db.Column(db.String, 
+        
+        info = {'label': 'FI_DISP'}, 
+        
+        default = '1.44 1.46')
+    
+    
+    f10 = db.Column(db.Float, 
+        
+        info = {'label': 'MIXING_FACTOR'}, 
+        
+        default = 0.5)
+    
+    
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'TEPHRA_TGSD'
+    }
+
+class PARTICLE_AGGREGATION (ConfigurationModel):
+    __tablename__ = "PARTICLE_AGGREGATION"
+
+    id = db.Column(db.Integer, 
+                   db.ForeignKey('block.id'), 
+                   primary_key=True)
+
+    
+    f1 = db.Column(ChoiceType([('NONE', 'NONE'), ('FI_LOWER_THAN', 'FI_LOWER_THAN'), ('FI_LARGER_THAN', 'FI_LARGER_THAN'), ('D_(MIC)_LARGER_THAN', 'D_(MIC)_LARGER_THAN'), ('D_(MIC)_LOWER_THAN', 'D_(MIC)_LOWER_THAN')]), 
+        
+        info = {'label': 'PARTICLE_CUT_OFF'}, 
+        
+        default = 'NONE')
+    
+    f2 = db.Column(db.Float, 
+        
+        info = {'label': 'none'}, 
+        
+        default = 1.0)
+    
+    
+    f3 = db.Column(ChoiceType([('NONE', 'NONE'), ('CORNELL', 'CORNELL'), ('COSTA', 'COSTA'), ('PERCENTAGE', 'PERCENTAGE')]), 
+        
+        info = {'label': 'AGGREGATION_MODEL'}, 
+        
+        default = 'PERCENTAGE')
+    
+    
+    f4 = db.Column(db.Integer, 
+        
+        info = {'label': 'NUMBER_OF_AGGREGATE_BINS'}, 
+        
+        default = 2)
+    
+    
+    f5 = db.Column(db.String, 
+        
+        info = {'label': 'DIAMETER_AGGREGATES_(MIC)'}, 
+        
+        default = '300. 200.')
+    
+    
+    f6 = db.Column(db.String, 
+        
+        info = {'label': 'DENSITY_AGGREGATES_(KGM3)'}, 
+        
+        default = '350. 250.')
+    
+    
+    f7 = db.Column(db.String, 
+        
+        info = {'label': 'PERCENTAGE_(%)'}, 
+        
+        default = '20. 10.')
+    
+    
+    f8 = db.Column(db.Float, 
+        
+        info = {'label': 'VSET_FACTOR'}, 
+        
+        default = '0.5')
+    
+    
+    f9 = db.Column(db.Float, 
+        
+        info = {'label': 'FRACTAL_EXPONENT'}, 
+        
+        default = '2.99')
+    
+    
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'PARTICLE_AGGREGATION'
+    }
+
+class SOURCE (ConfigurationModel):
+    __tablename__ = "SOURCE"
+
+    id = db.Column(db.Integer, 
+                   db.ForeignKey('block.id'), 
+                   primary_key=True)
+
+    
+    f1 = db.Column(ChoiceType([('POINT', 'POINT'), ('SUZUKI', 'SUZUKI'), ('TOP-HAT', 'TOP-HAT'), ('PLUME', 'PLUME')]), 
+        
+        info = {'label': 'SOURCE_TYPE'}, 
+        
+        default = 'TOP-HAT')
+    
+    
+    f2 = db.Column(db.Float, 
+        
+        info = {'label': 'SOURCE_START_(HOURS_AFTER_00)'}, 
+        
+        default = 0)
+    
+    
+    f3 = db.Column(db.Float, 
+        
+        info = {'label': 'SOURCE_END_(HOURS_AFTER_00)'}, 
+        
+        default = 10)
+    
+    
+    f4 = db.Column(db.Float, 
+        
+        info = {'label': 'LON_VENT'}, 
+        
+        default = 15.0)
+    
+    
+    f5 = db.Column(db.Float, 
+        
+        info = {'label': 'LAT_VENT'}, 
+        
+        default = 37.75)
+    
+    
+    f6 = db.Column(db.Float, 
+        
+        info = {'label': 'VENT_HEIGHT_(M)'}, 
+        
+        default = 3000.0)
+    
+    
+    f7 = db.Column(db.Float, 
+        
+        info = {'label': 'HEIGHT_ABOVE_VENT_(M)'}, 
+        
+        default = 6000.0)
+    
+    
+    f8 = db.Column(ChoiceType([('value', 'value'), ('ESTIMATE-MASTIN', 'ESTIMATE-MASTIN'), ('ESTIMATE-WOODHOUSE', 'ESTIMATE-WOODHOUSE'), ('ESTIMATE-DEGRUYTER', 'ESTIMATE-DEGRUYTER')]), 
+        
+        info = {'label': 'MASS_FLOW_RATE_(KGS)'}, 
+        
+        default = 'ESTIMATE-DEGRUYTER')
+    
+    f9 = db.Column(db.Float, 
+        
+        info = {'label': 'none'}, 
+        
+        default = 10000000.0)
+    
+    
+    f10 = db.Column(db.Float, 
+        
+        info = {'label': 'ALFA_PLUME'}, 
+        
+        default = 0.1)
+    
+    
+    f11 = db.Column(db.Float, 
+        
+        info = {'label': 'BETA_PLUME'}, 
+        
+        default = 0.5)
+    
+    
+    f12 = db.Column(db.Float, 
+        
+        info = {'label': 'EXIT_TEMPERATURE_(K)'}, 
+        
+        default = 1200.0)
+    
+    
+    f13 = db.Column(db.Float, 
+        
+        info = {'label': 'EXIT_WATER_FRACTION_(%)'}, 
+        
+        default = 0.0)
+    
+    
+    f14 = db.Column(db.Float, 
+        
+        info = {'label': 'A'}, 
+        
+        default = 4)
+    
+    
+    f15 = db.Column(db.Float, 
+        
+        info = {'label': 'L'}, 
+        
+        default = 5)
+    
+    
+    f16 = db.Column(db.Float, 
+        
+        info = {'label': 'THICKNESS_(M)'}, 
+        
+        default = 2000.0)
+    
+    
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'SOURCE'
     }

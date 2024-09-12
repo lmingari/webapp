@@ -1,0 +1,6 @@
+{%- for slabel,section in sections.items() %}
+ -----------
+{{slabel}}
+ -----------
+{{section}}
+{% endfor %} 

@@ -10,7 +10,8 @@ class ProfileModel(db.Model):
     description = db.Column(db.Text)
 
     blocks      = db.relationship('ConfigurationModel',
-                                  backref = 'profile')
+                                  backref = 'profile',
+                                  cascade = 'all, delete')
     def set_default(self):
     {% for slabel in sections %}
         self.blocks.append({{slabel}}()) {% endfor %}
@@ -23,7 +24,7 @@ class ConfigurationModel(db.Model):
 
     id   = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String)
-    prof_id = db.Column(db.Integer, db.ForeignKey('profiles.id'))
+    prof_id = db.Column(db.Integer, db.ForeignKey('profiles.id'), nullable=False)
 
     __mapper_args__ = {
         'polymorphic_identity': 'block',
@@ -41,7 +42,7 @@ class {{slabel}} (ConfigurationModel):
                    db.ForeignKey('block.id'), 
                    primary_key=True)
 
-    {% for v,kfields in section.data_var.items() -%}
+    {% for v,kfields in section.vars.items() -%}
     {% for key in kfields %}
     {{key}} = db.Column({{section[key].mtype}}, 
         {% if loop.first %}

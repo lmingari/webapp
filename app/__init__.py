@@ -7,6 +7,7 @@ from app.profiles import bp as profiles_bp
 from app.configuration import bp as configuration_bp
 from app.run import bp as run_bp
 from app.plot import bp as plot_bp
+from app.cli import bp as cli_bp
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -21,5 +22,6 @@ def create_app(config_class=Config):
     app.register_blueprint(configuration_bp, url_prefix='/configuration')
     app.register_blueprint(run_bp, url_prefix='/run')
     app.register_blueprint(plot_bp, url_prefix='/plot')
+    app.register_blueprint(cli_bp)
 
     return app

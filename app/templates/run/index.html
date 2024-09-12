@@ -4,12 +4,39 @@
 <div class="container-fluid">
     <h2>Run panel for profile <b class="mark">{{ profile }}</b> </h2>
     
-    <div class="card">
-        <div class="card-header bg-primary text-white">Run configuration</div>
-        <div class="card-body">
-            <p>Null</p>
+<div class="row">
+    
+    <div class="col">
+        <div class="card">
+            <div class="card-header bg-primary text-white">Run configuration</div>
+            <div class="card-body">
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                <input type="submit" class="btn btn-primary" value="Run">
+            </form>
+            </div>
         </div>
     </div>
+
+    <div class="col">
+        <div class="card">
+            <div class="card-header bg-primary text-white">Configuration file</div>
+            <div class="card-body">
+<pre>
+<code>
+{%- for slabel,section in sections.items() %}
+-----------
+{{slabel}}
+-----------
+{{section}}
+{% endfor %} 
+</code> 
+</pre>
+            </div>
+        </div>
+    </div>
+
+</div>
 </div>
 
 {% endblock %}
