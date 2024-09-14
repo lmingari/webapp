@@ -1,59 +1,60 @@
-{% macro render_form_field(field) %}
+{% macro render_form_field_label(field) %}
     {% if field.type == 'BooleanField' %}
-        <div class="form-check mb-3">
-        {{ field(class_="form-check-input") }}
-        {{ field.label(class_="form-check-label") }}
-        </div>
-    {% elif field.type == 'SelectField' %}
-        <div class="mb-3 mt-3">
-        {{ field.label(class_="form-label") }}
-        {{ field(class_="form-select") }}
-        </div>
+    {{ field.label(class_="form-check-label") }}
     {% else %}
-        <div class="mb-3 mt-3">
-        {{ field.label(class_="form-label") }}
-        {{ field(class_="form-control") }}
-        </div>
+    {{ field.label(class_="form-label ms-3 me-1") }}
     {% endif %}
+{% endmacro %}
 
-    {%- for error in field.errors %}
+{% macro render_form_field_errors(field) %}
+    {% for error in field.errors %}
         <span class="text-danger">{{ error }}</span>
     {% endfor %}
 {% endmacro %}
 
+{% macro render_form_field_only(field, select = True) %}
+    {% if field.type == 'BooleanField' %}
+        {{ field(class_="form-check-input") }}
+    {% elif field.type == 'SelectField' %}
+        {% if select %}
+        {{ field(class_="form-select") }}
+        {%else%}
+        {{ field }}
+        {%endif%}
+    {% else %}
+        {{ field(class_="form-control") }}
+        {{ render_form_field_errors(field) }}
+    {% endif %}
+{% endmacro %}
+
+{% macro render_form_field(field, select=True) %}
+    {% if field.type == 'BooleanField' %}
+        <div class="form-check ms-3">
+        {{ render_form_field_only(field) }}
+        {{ render_form_field_label(field) }}
+        </div>
+    {% else %}
+        {{ render_form_field_label(field) }}
+        {{ render_form_field_only(field,select) }}
+    {%endif%}
+{% endmacro %}
+
 {% macro render_form_fields(keys,form) %}
 {% for key in keys %}
-{% set field = form[key] %}
-{% if loop.first %}
-    {% if field.type == 'BooleanField' %}
-        <div class="form-check me-3">
-        {{ field(class_="form-check-input") }}
-        {{ field.label(class_="form-check-label") }}
-        </div>
+    {% set field = form[key] %}
+    {% if loop.first %}
+    {{ render_form_field_group(field) }}
     {% else %}
-        <span class="input-group-text" data-bs-toggle="tooltip" title="Hooray!">{{field.label.text}}</span>
-        {% if field.type == 'SelectField' %}
-            {{ field(class_="form-select me-3") }}
-        {% else %}
-            {{ field(class_="form-control me-3") }}
-        {% endif %}
+    {{ render_form_field(field) }}
     {% endif %}
-{% else %}
-    {% if field.type != 'BooleanField' %}
-        {% if field.label.text != "none" %}
-        {{ field.label(class_="form-label me-1") }}
-        {% endif %}
-        {% if field.type == 'SelectField' %}
-            {{ field(class_="form-select me-3") }}
-        {% else %}
-            {{ field(class_="form-control me-3") }}
-        {% endif %}
-    {% else %}
-        <div class="form-check">
-        {{ field(class_="form-check-input") }}
-        {{ field.label(class_="form-check-label me-3") }}
-        </div>
-    {% endif %}
-{% endif %}
 {% endfor %}
+{% endmacro %}
+
+{% macro render_form_field_group(field) %}
+    {% if field.type == 'BooleanField' %}
+        {{ render_form_field(field) }}
+    {%else%}
+        <span class="input-group-text">{{field.label.text}}</span>
+        {{ render_form_field_only(field) }}
+    {% endif %}
 {% endmacro %}

@@ -6,9 +6,14 @@ class ProfileModel(db.Model):
     __tablename__ = 'profiles'
 
     id          = db.Column(db.Integer, primary_key=True)
-    title       = db.Column(db.String, unique=True, nullable=False)
-    description = db.Column(db.Text)
-
+    title       = db.Column(db.String, 
+                            unique=True, 
+                            nullable=False,
+                            info = {'label': 'Title'}
+                            )
+    description = db.Column(db.Text,
+                            info = {'label': 'Description'}
+                            )
     blocks      = db.relationship('ConfigurationModel',
                                   backref = 'profile',
                                   cascade = 'all, delete')
@@ -50,7 +55,7 @@ class {{slabel}} (ConfigurationModel):
         {% elif section[key].label %}
         info = {'label': '{{section[key].label}}'}, 
         {% else %}
-        info = {'label': 'none'}, 
+        info = {'label': ''}, 
         {% endif %}
         default = {{ section[key].default|repr }})
     {% endfor %}

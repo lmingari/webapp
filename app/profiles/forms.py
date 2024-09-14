@@ -1,7 +1,32 @@
+from flask import current_app
 from flask_wtf import FlaskForm
-from wtforms_sqlalchemy.orm import model_form
+from wtforms import SelectField
+from wtforms_alchemy import model_form_factory
 from app.models import ProfileModel
+import pandas as pd
 
-ProfileForm = model_form(ProfileModel, 
-                         base_class = FlaskForm, 
-                         exclude = {'blocks'})
+# Initialize an empty list to store choices
+choices_list = []
+
+def load_choices():
+    global choices_list
+    if not choices_list:
+        with current_app.open_resource('static/volcano_list.pkl') as f:
+            df = pd.read_pickle(f)
+        choices_list = [("","")]
+        choices_list += [(index, row['Volcano Name']) for index, row in df.iterrows()]
+    return choices_list
+
+ModelForm = model_form_factory(FlaskForm)
+
+class ProfileForm(ModelForm):
+    class Meta:
+        model = ProfileModel
+
+    volcano = SelectField(u'Volcano')
+
+    def __init__(self, *args, **kwargs):
+        super(ProfileForm, self).__init__(*args, **kwargs)
+        # Populate the choices using the cached choices
+        self.volcano.choices = load_choices()
+        self._fields.move_to_end('volcano')

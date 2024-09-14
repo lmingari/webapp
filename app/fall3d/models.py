@@ -6,9 +6,14 @@ class ProfileModel(db.Model):
     __tablename__ = 'profiles'
 
     id          = db.Column(db.Integer, primary_key=True)
-    title       = db.Column(db.String, unique=True, nullable=False)
-    description = db.Column(db.Text)
-
+    title       = db.Column(db.String, 
+                            unique=True, 
+                            nullable=False,
+                            info = {'label': 'Title'}
+                            )
+    description = db.Column(db.Text,
+                            info = {'label': 'Description'}
+                            )
     blocks      = db.relationship('ConfigurationModel',
                                   backref = 'profile',
                                   cascade = 'all, delete')
@@ -236,7 +241,7 @@ class GRID (ConfigurationModel):
     
     f9 = db.Column(db.Float, 
         
-        info = {'label': 'none'}, 
+        info = {'label': ''}, 
         
         default = 0.1)
     
@@ -255,7 +260,7 @@ class GRID (ConfigurationModel):
     
     f12 = db.Column(db.Float, 
         
-        info = {'label': 'none'}, 
+        info = {'label': ''}, 
         
         default = 0.1)
     
@@ -503,7 +508,7 @@ class PARTICLE_AGGREGATION (ConfigurationModel):
     
     f2 = db.Column(db.Float, 
         
-        info = {'label': 'none'}, 
+        info = {'label': ''}, 
         
         default = 1.0)
     
@@ -627,7 +632,7 @@ class SOURCE (ConfigurationModel):
     
     f9 = db.Column(db.Float, 
         
-        info = {'label': 'none'}, 
+        info = {'label': ''}, 
         
         default = 10000000.0)
     
