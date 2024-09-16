@@ -1,9 +1,11 @@
 {% macro render_form_field_label(field) %}
+{% if field.label.text != 'None' %}
     {% if field.type == 'BooleanField' %}
     {{ field.label(class_="form-check-label") }}
     {% else %}
     {{ field.label(class_="form-label ms-3 me-1") }}
     {% endif %}
+{%endif%}
 {% endmacro %}
 
 {% macro render_form_field_errors(field) %}
@@ -39,22 +41,25 @@
     {%endif%}
 {% endmacro %}
 
-{% macro render_form_fields(keys,form) %}
+{% macro render_form_fields(var,keys,form) %}
 {% for key in keys %}
     {% set field = form[key] %}
     {% if loop.first %}
-    {{ render_form_field_group(field) }}
+    {{ render_form_field_group(var,field) }}
     {% else %}
     {{ render_form_field(field) }}
     {% endif %}
 {% endfor %}
 {% endmacro %}
 
-{% macro render_form_field_group(field) %}
+{% macro render_form_field_group(var,field) %}
     {% if field.type == 'BooleanField' %}
-        {{ render_form_field(field) }}
+        <div class="form-check ms-3">
+        {{ render_form_field_only(field) }}
+        <label class="form-check-label" for="{{field.id}}">{{var}}</label>
+        </div>
     {%else%}
-        <span class="input-group-text">{{field.label.text}}</span>
+        <span class="input-group-text">{{var}}</span>
         {{ render_form_field_only(field) }}
     {% endif %}
 {% endmacro %}

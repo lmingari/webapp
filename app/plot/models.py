@@ -1,15 +1,11 @@
 from app.extensions import db
+from sqlalchemy.orm import Mapped, mapped_column
 
 class PlotModel(db.Model):
-    id          = db.Column(db.Integer, primary_key=True)
-    variable    = db.Column(db.String,  info = {'choices': [('','No available variables')]})
-    time        = db.Column(db.Integer, info = {'choices': [(0,'No available times')]})
-    minval      = db.Column(db.Float, default=0)
-    maxval      = db.Column(db.Float, default=10)
-    step        = db.Column(db.Float, default=1)
-    logscale    = db.Column(db.Boolean)
-
-    def __repr__(self):
-        return f'<Profile "{self.variable}">'
-
-
+    id: Mapped[int]   = mapped_column(primary_key=True)
+    f1: Mapped[str]   = mapped_column(unique=True,   info={'label': 'Variable', 'choices': [('','No available variables')]})
+    f2: Mapped[str]   = mapped_column(unique=True,   info={'label': 'Time', 'choices': [(0,'No available times')]})
+    f3: Mapped[float] = mapped_column(default=0,     info={'label': 'Minimum'})
+    f4: Mapped[float] = mapped_column(default=5,     info={'label': 'Maximum'})
+    f5: Mapped[float] = mapped_column(default=1,     info={'label': 'Step'})
+    f6: Mapped[bool]  = mapped_column(default=False, info={'label': 'Logscale'})

@@ -1,6 +1,11 @@
 from collections import OrderedDict
 from datetime import date
 
+class CustomDate(date):
+    def __repr__(self):
+        # Use self.year, self.month, and self.day to format the repr
+        return f"date({self.year},{self.month},{self.day})"
+    
 class OrderedMeta(type):
     @classmethod
     def __prepare__(cls, name, bases):
@@ -90,27 +95,27 @@ class Field:
 class FieldString(Field):
     @property
     def mtype(self):
-        return 'db.String'
+        return 'str'
 
 class FieldFloat(Field):
     @property
     def mtype(self):
-        return 'db.Float'
+        return 'float'
 
 class FieldInteger(Field):
     @property
     def mtype(self):
-        return 'db.Integer'
+        return 'int'
 
 class FieldDate(Field):
     @property
     def mtype(self):
-        return 'db.Date'
+        return 'date'
 
 class FieldBoolean(Field):
     @property
     def mtype(self):
-        return 'db.Boolean'
+        return 'bool'
 
     def _fmt(self):
         if self.value is None:
@@ -129,7 +134,7 @@ class FieldChoice(Field):
     @property
     def mtype(self):
         items = [(item,item) for item in self.options]
-        return f'ChoiceType({items})'
+        return f'str'
 
 class Section(BaseClass):
 
@@ -169,7 +174,7 @@ class Section(BaseClass):
 class SectionTime(Section):
     description = "This block defines variables related to date and time. It is used by FALL3D, SetDbs, and SetSrc tasks"
 
-    f1 = FieldDate(variable="DATE", default = date(2008,4,29))
+    f1 = FieldDate(variable="DATE", default = CustomDate(2008,4,29))
     f2 = FieldFloat(variable="RUN_START_(HOURS_AFTER_00)", default = 0)
     f3 = FieldFloat(variable="RUN_END_(HOURS_AFTER_00)", default = 24)
     f4 = FieldChoice(variable="INITIAL_CONDITION", default = 'NONE', options = ['NONE','INSERTION','RESTART'])
@@ -212,7 +217,7 @@ class SectionGrid(Section):
     f12 = FieldFloat  (variable="NY", default = 0.1)
     f13 = FieldInteger(variable="NZ", default = 10)
     f14 = FieldFloat  (variable="ZMAX_(M)", default = 10000)
-    f15 = FieldFloat  (variable="SIGMA_VALUES", default = 10000) #TODO
+    f15 = FieldString (variable="SIGMA_VALUES", default = "") 
 
     def _fmt_var(self,index):
         if index == ('NX',None):
@@ -287,8 +292,8 @@ class SectionSource(Section):
     description = "This block defines the variables needed by the SetSrc task to generate the source term for the emission phases"
 
     f1  = FieldChoice(variable="SOURCE_TYPE", default = 'TOP-HAT', options = ['POINT','SUZUKI','TOP-HAT','PLUME'])
-    f2  = FieldFloat(variable="SOURCE_START_(HOURS_AFTER_00)", default = 0)
-    f3  = FieldFloat(variable="SOURCE_END_(HOURS_AFTER_00)", default = 10)
+    f2  = FieldString(variable="SOURCE_START_(HOURS_AFTER_00)", default = "0  12")
+    f3  = FieldString(variable="SOURCE_END_(HOURS_AFTER_00)",   default = "10 24")
     f4  = FieldFloat(variable="LON_VENT", default = 15.0)
     f5  = FieldFloat(variable="LAT_VENT", default = 37.75)
     f6  = FieldFloat(variable="VENT_HEIGHT_(M)", default = 3000.)
@@ -299,8 +304,8 @@ class SectionSource(Section):
     f11 = FieldFloat(variable="BETA_PLUME", default = 0.5)
     f12 = FieldFloat(variable="EXIT_TEMPERATURE_(K)", default = 1200.)
     f13 = FieldFloat(variable="EXIT_WATER_FRACTION_(%)", default = 0.)
-    f14 = FieldFloat(variable="A", block="IF_SUZUKI_SOURCE", default = 4)
-    f15 = FieldFloat(variable="L", block="IF_SUZUKI_SOURCE", default = 5)
+    f14 = FieldString(variable="A", block="IF_SUZUKI_SOURCE", default = "4. 5.")
+    f15 = FieldString(variable="L", block="IF_SUZUKI_SOURCE", default = "5.")
     f16 = FieldFloat(variable="THICKNESS_(M)", block="IF_TOP-HAT_SOURCE", default = 2000.)
 
     def _fmt_var(self,index):
@@ -309,6 +314,99 @@ class SectionSource(Section):
                 return f"MASS_FLOW_RATE_(KGS) = {self['f9']}"
             else:
                 return f"MASS_FLOW_RATE_(KGS) = {self['f8']}"
+        else:
+            return super()._fmt_var(index)
+
+class SectionPhysics(Section):
+    description = "This block defines the specific variables related to physics in the FALL3D model"
+
+    f1  = FieldChoice(variable="LIMITER", default = 'SUPERBEE', options = ['MINMOD','SUPERBEE','OSPRE'])
+    f2  = FieldChoice(variable="TIME_MARCHING", default = 'RUNGE-KUTTA', options = ['EULER','RUNGE-KUTTA'])
+    f3  = FieldChoice(variable="CFL_CRITERION", default = 'ALL_DIMENSIONS', options = ['ONE_DIMENSIONAL','ALL_DIMENSIONS'])
+    f4  = FieldFloat(variable="CFL_SAFETY_FACTOR", default = 0.9)
+    f5  = FieldChoice(variable="TERMINAL_VELOCITY_MODEL", default = 'GANSER', options = ['ARASTOOPOUR','GANSER','WILSON','DELLINO','PFEIFFER','DIOGUARDI2017','DIOGUARDI2018'])
+    f6  = FieldChoice(variable="HORIZONTAL_TURBULENCE_MODEL", default = 'CMAQ', options = ['CONSTANT', 'CMAQ', 'RAMS'])
+    f7  = FieldFloat(variable="HORIZONTAL_TURBULENCE_MODEL", default = 1000)
+    f8  = FieldChoice(variable="VERTICAL_TURBULENCE_MODEL", default = 'SIMILARITY', options = ['CONSTANT', 'SIMILARITY'])
+    f9  = FieldFloat(variable="VERTICAL_TURBULENCE_MODEL", default = 150)
+    f10 = FieldFloat(variable="RAMS_CS", default = 0.2275)
+    f11 = FieldBoolean(variable="WET_DEPOSITION", default = False)
+    f12 = FieldBoolean(variable="DRY_DEPOSITION", default = False)
+    f13 = FieldBoolean(variable="GRAVITY_CURRENT", default = False)
+    #
+    f15 = FieldFloat(variable="C_FLOW_RATE", block="IF_GRAVITY_CURRENT", default = 870)
+    f16 = FieldFloat(variable="LAMBDA_GRAV", block="IF_GRAVITY_CURRENT", default = 0.2)
+    f17 = FieldFloat(variable="K_ENTRAIN", block="IF_GRAVITY_CURRENT", default = 0.1)
+    f18 = FieldFloat(variable="BRUNT_VAISALA", block="IF_GRAVITY_CURRENT", default = 0.02)
+    f19 = FieldFloat(variable="GC_START_(HOURS_AFTER_00)", block="IF_GRAVITY_CURRENT", default = 0)
+    f20 = FieldFloat(variable="GC_END_(HOURS_AFTER_00)", block="IF_GRAVITY_CURRENT", default = 3)
+
+    def _fmt_var(self,index):
+        (var,_) = index
+        k = self.vars[index][0]
+        if self[k].mtype == "db.Boolean":
+            if self[k].value:
+                value = "YES"
+            else:
+                value = "NO"
+            return f"{var} = {value}"
+        elif k in ['f6','f8'] and self[k].value != 'CONSTANT':
+            return f"{var} = {self[k]}"
+        else:
+            return super()._fmt_var(index)
+
+class SectionOutput(Section):
+    description = "This block is read by task FALL3D and defines specific variables related to output strategy"
+
+    f1  = FieldBoolean(variable="PARALLEL_IO", default = False)
+    f2  = FieldChoice(variable="LOG_FILE_LEVEL", default = 'FULL', options = ['NONE','NORMAL','FULL'])
+    f3  = FieldChoice(variable="RESTART_TIME_INTERVAL_(HOURS)", default = 'END_ONLY', options = ['value','NONE','END_ONLY'])
+    f4  = FieldFloat(variable="RESTART_TIME_INTERVAL_(HOURS)", default = 12)
+    f5  = FieldBoolean(variable="OUTPUT_JSON_FILES", default = False)
+    f6  = FieldBoolean(variable="OUTPUT_INTERMEDIATE_FILES", default = False)
+    f7  = FieldChoice(variable="OUTPUT_TIME_START_(HOURS)", default = 'RUN_START', options = ['value','RUN_START'])
+    f8  = FieldFloat(variable="OUTPUT_TIME_START_(HOURS)", default = 0)
+    f9  = FieldFloat(variable="OUTPUT_TIME_INTERVAL_(HOURS)", default = 1)
+    f10  = FieldBoolean(variable="OUTPUT_3D_CONCENTRATION", default = False)
+    f11 = FieldBoolean(variable="OUTPUT_3D_CONCENTRATION_BINS", default = False)
+    f12 = FieldBoolean(variable="OUTPUT_SURFACE_CONCENTRATION", default = False)
+    f13 = FieldBoolean(variable="OUTPUT_COLUMN_LOAD", default = True)
+    f14 = FieldBoolean(variable="OUTPUT_CLOUD_TOP", default = True)
+    f15 = FieldBoolean(variable="OUTPUT_GROUND_LOAD", default = True)
+    f16 = FieldBoolean(variable="OUTPUT_GROUND_LOAD_BINS", default = False)
+    f17 = FieldBoolean(variable="OUTPUT_WET_DEPOSITION", default = False)
+    f18 = FieldBoolean(variable="TRACK_POINTS", default = False)
+    f19 = FieldString(variable="TRACK_POINTS_FILE", default = "my_file.pts")
+    f20 = FieldBoolean(variable="OUTPUT_CONCENTRATION_AT_XCUTS", default = False)
+    f21 = FieldString(variable="X-VALUES", default = "15")
+    f22 = FieldBoolean(variable="OUTPUT_CONCENTRATION_AT_YCUTS", default = False)
+    f23 = FieldString(variable="Y-VALUES", default = "37.5")
+    f24 = FieldBoolean(variable="OUTPUT_CONCENTRATION_AT_ZCUTS", default = False)
+    f25 = FieldString(variable="Z-VALUES", default = "5000")
+    f26 = FieldBoolean(variable="OUTPUT_CONCENTRATION_AT_FL", default = True)
+    f27 = FieldString(variable="FL-VALUES", default = "50 100 150 200 250 300 350 400")
+
+    def _fmt_var(self,index):
+        (var,_) = index
+        k = self.vars[index][0]
+        if self[k].mtype == "db.Boolean":
+            if self[k].value:
+                value = "YES"
+            else:
+                value = "NO"
+            return f"{var} = {value}"
+        elif 'f3' in self.vars[index]:
+            if self['f3'].value == 'value':
+                value = self['f4'].value
+            else:
+                value = self['f3']
+            return f"{var} = {value}"
+        elif 'f7' in self.vars[index]:
+            if self['f7'].value == 'value':
+                value = self['f8'].value
+            else:
+                value = self['f7']
+            return f"{var} = {value}"
         else:
             return super()._fmt_var(index)
 
@@ -321,6 +419,8 @@ def get_sections():
             'TEPHRA_TGSD':          SectionTGSD(),
             'PARTICLE_AGGREGATION': SectionAggregation(),
             'SOURCE':               SectionSource(),
+            'MODEL_PHYSICS':        SectionPhysics(),
+            'MODEL_OUTPUT':         SectionOutput(),
             }
     return config
 
@@ -339,10 +439,12 @@ if __name__ == "__main__":
 
     config = get_sections()
 
+    sections = {(k,type(obj).__name__): obj for k,obj in config.items()}
+
     with open("models.py", "w") as f:
-        out = template.render(sections=config)
+        out = template.render(sections=sections)
         f.write(out)
 
-    for label,section in config.items():
-        print("*** ",label," ***")
-        print(section)
+#    for label,section in config.items():
+#        print("*** ",label," ***")
+#        print(section)

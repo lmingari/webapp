@@ -1,8 +1,9 @@
+{% from "macros/forms.html" import render_form_field %}
 {%extends "base.html" %} 
 {%block content%} 
 
 <div class="container-fluid">
-    <h2>Run panel for profile <b class="mark">{{ profile }}</b> </h2>
+    <h2>Run panel</h2>
     
 <div class="row">
     
@@ -12,6 +13,11 @@
             <div class="card-body">
             <form method="POST">
                 {{ form.hidden_tag() }}
+                {% for field in form if field.widget.input_type != 'hidden' %}
+                <div class="mb-3">
+                {{ render_form_field(field) }}
+                </div>
+                {% endfor %}
                 <input type="submit" class="btn btn-primary" value="Run">
             </form>
             </div>

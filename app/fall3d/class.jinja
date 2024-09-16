@@ -1,67 +1,144 @@
+{% from 'macros.py' import render_str -%}
+from flask import session
+from sqlalchemy import ForeignKey, Boolean
+from sqlalchemy.orm import Mapped, mapped_column, reconstructor, relationship
 from app.extensions import db
-from sqlalchemy_utils import ChoiceType
-import datetime
+from typing import Optional, List
+from datetime import date
 
-class ProfileModel(db.Model):
-    __tablename__ = 'profiles'
+class Profiles(db.Model):
+    id: Mapped[int]    = mapped_column(primary_key=True)
+    label: Mapped[str] = mapped_column(unique=True, 
+                                       nullable=False, 
+                                       info={'label': 'Label'})
+    description: Mapped[Optional[str]] = mapped_column(db.Text, 
+                                       info={'label': 'Description'})
 
-    id          = db.Column(db.Integer, primary_key=True)
-    title       = db.Column(db.String, 
-                            unique=True, 
-                            nullable=False,
-                            info = {'label': 'Title'}
-                            )
-    description = db.Column(db.Text,
-                            info = {'label': 'Description'}
-                            )
-    blocks      = db.relationship('ConfigurationModel',
-                                  backref = 'profile',
-                                  cascade = 'all, delete')
-    def set_default(self):
-    {% for slabel in sections %}
-        self.blocks.append({{slabel}}()) {% endfor %}
+    sections: Mapped[List['Sections']] = relationship(back_populates='profile', cascade='all, delete')
+
+    def __str__(self):
+        return self.label
 
     def __repr__(self):
-        return f'<Profile "{self.title}">'
+        return '<Profile {}>'.format(self.label)
 
-class ConfigurationModel(db.Model):
-    __tablename__ = 'block'
+class SectionBase(db.Model):
+    __abstract__ = True
 
-    id   = db.Column(db.Integer, primary_key=True)
-    type = db.Column(db.String)
-    prof_id = db.Column(db.Integer, db.ForeignKey('profiles.id'), nullable=False)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.init_on_load()
+
+    @reconstructor
+    def init_on_load(self):
+        self._vars = {}
+        seen = set()
+        for col in self.__table__.columns:
+            variable = col.info.get('variable',None)
+            block    = col.info.get('block',None)
+            index    = (variable,block)
+            if variable is None: continue
+            if index not in seen:
+                seen.add(index)
+                self._vars[index] = []
+            self._vars[index].append(col.name)
+
+            label = col.info.get('label',None)
+            if label is None: col.info['label'] = "None"
+
+            options = col.info.get('options',None)
+            if not options is None:
+                col.info['choices'] = [(o,o) for o in options]
+
+    def _fmt_col(self,label,value):
+        if not value is None:
+            if isinstance(value,bool):
+                if value:
+                    value_fmt = "ON"
+                else:
+                    value_fmt = "OFF"
+            else:
+                value_fmt = f"{value}"
+
+        if label == "None": label = None
+
+        if label is None and value is None:
+            return None
+        elif label is None:
+            return f"{value_fmt}"
+        elif value is None:
+            return f"{label}"
+        else:
+            return f"{label} {value_fmt}"
+
+    def _fmt_var(self,index):
+        (variable,block) = index
+        strings=[]
+        for scol in self._vars[index]:
+            lcol = self.__table__.columns[scol].info.get('label',None)
+            vcol = getattr(self,scol,None)
+            strings.append(self._fmt_col(lcol,vcol))
+        value = " ".join([s for s in strings if not s is None])
+        return f"{variable} = {value}"
+
+    def __str__(self):
+        output = []
+        seen = {None}
+        for index in self._vars:
+            (var,block) = index
+            tab = " "*3
+            if block not in seen:
+                seen.add(block)
+                output += ["",tab+block]
+            if not block is None: tab = " "*6
+            for line in self._fmt_var(index).splitlines():
+                output.append(tab+line)
+        return "\n".join(output)
+
+    @property
+    def vars(self):
+        return self._vars
+
+class Sections(SectionBase):
+    id:      Mapped[int] = mapped_column(primary_key=True)
+    label:   Mapped[str] 
+    
+    p_id:    Mapped[int] = mapped_column(ForeignKey(Profiles.id), index=True)
+    profile: Mapped[Profiles] = relationship(back_populates='sections')
 
     __mapper_args__ = {
-        'polymorphic_identity': 'block',
-        'polymorphic_on': 'type'
+        'polymorphic_identity': 'sections',
+        'polymorphic_on': 'label'
     }
 
-    def __repr__(self):
-        return f'<Block "{self.type}">'
-
-{% for slabel, section in sections.items() %}
-class {{slabel}} (ConfigurationModel):
+{% for (slabel,sclass), section in sections.items() %}
+class {{sclass}} (Sections):
     __tablename__ = "{{slabel}}"
-
-    id = db.Column(db.Integer, 
-                   db.ForeignKey('block.id'), 
-                   primary_key=True)
-
-    {% for v,kfields in section.vars.items() -%}
-    {% for key in kfields %}
-    {{key}} = db.Column({{section[key].mtype}}, 
-        {% if loop.first %}
-        info = {'label': '{{section[key].variable}}'}, 
-        {% elif section[key].label %}
-        info = {'label': '{{section[key].label}}'}, 
-        {% else %}
-        info = {'label': ''}, 
-        {% endif %}
-        default = {{ section[key].default|repr }})
-    {% endfor %}
-    {% endfor %}
-
     __mapper_args__ = {
         'polymorphic_identity': '{{slabel}}'
     }
+
+    description = "{{section.description}}"
+
+    id: Mapped[int] = mapped_column(ForeignKey(Sections.id),primary_key=True)
+    
+    {% for key,field in section.fields.items() -%}
+    {{key}}: Mapped[{{field.mtype}}] = mapped_column(default = {{field.default|repr }}, info = {'variable': "{{field.variable}}", {% if field.label %} 'label': "{{field.label}}" {% endif %} {% if field.block %} 'block': "{{field.block}}", {%endif%} {% if field.options %} 'options': {{field.options}}{%endif%} })
+    {% endfor %}
+    {{ render_str(slabel) }}
 {% endfor %}
+
+@db.event.listens_for(Profiles, 'load')
+def receive_load(target, context):
+    print("Loading profile")
+    if 'profile' in session: print(session['profile'])
+
+@db.event.listens_for(Profiles, 'init')
+def receive_init(target, args, kwargs):
+    print('Starting new profile')
+    print(kwargs)
+    s = [ {% for (slabel,sclass), section in sections.items() %}
+        {{sclass}}(profile=target), 
+        {%-endfor-%}
+         ]
+    db.session.add_all(s)

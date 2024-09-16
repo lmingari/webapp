@@ -2,7 +2,7 @@ from flask import current_app
 from flask_wtf import FlaskForm
 from wtforms import SelectField
 from wtforms_alchemy import model_form_factory
-from app.models import ProfileModel
+from app.models import Profiles
 import pandas as pd
 
 # Initialize an empty list to store choices
@@ -17,11 +17,11 @@ def load_choices():
         choices_list += [(index, row['Volcano Name']) for index, row in df.iterrows()]
     return choices_list
 
-ModelForm = model_form_factory(FlaskForm)
+BaseForm = model_form_factory(FlaskForm)
 
-class ProfileForm(ModelForm):
+class ProfileForm(BaseForm):
     class Meta:
-        model = ProfileModel
+        model = Profiles
 
     volcano = SelectField(u'Volcano')
 

@@ -8,16 +8,16 @@
 {%block content%} 
 
 <div class="container-fluid">
-  <h2>Configuration panel for profile <b class="mark">{{ profile }}</b> </h2>
+  <h2>Configuration panel</h2>
   <br>
-  <p><strong>Note:</strong> {{section.description}}</p>
+  <p><strong>Note:</strong> {{sobj.description}}</p>
   <ul class="nav nav-pills pb-3">
-      {% for item in blocks %}
+      {% for slabel in slabels %}
       <li class="nav-item">
-          {% if item==block %}
-          <a class="nav-link active" href="{{ url_for('configuration.set', block=item) }}">{{ item }}</a>
+          {% if slabel==sactive %}
+          <a class="nav-link active" href="{{ url_for('configuration.set', section=slabel) }}">{{ slabel }}</a>
           {% else %}
-          <a class="nav-link" href="{{ url_for('configuration.set', block=item) }}">{{ item }}</a>
+          <a class="nav-link" href="{{ url_for('configuration.set', section=slabel) }}">{{ slabel }}</a>
           {% endif %}
       </li>
       {% endfor %}
@@ -30,7 +30,7 @@
       <div class="card-body">
           <form method="POST">
               {{ form.hidden_tag() }}
-              {% for v,keys in section.vars.items() %}
+              {% for v,keys in sobj.vars.items() %}
               {% if loop.changed(v[1]) %}
               {% if not loop.first %}
               <hr class="mt-5 mb-1"/>
@@ -38,7 +38,7 @@
               {% endif %}
               {% endif %}
               <div class="input-group mb-3">
-                  {{ render_form_fields(keys,form) }}
+                  {{ render_form_fields(v[0],keys,form) }}
               </div>
               {% endfor %}
               <input type="submit" class="btn btn-primary" value='Update'>
@@ -51,7 +51,7 @@
       <div class="card-header bg-primary text-white">Preview</div>
       <div class="card-body">
           <pre><code>
-{{section}}
+{{sobj}}
           </code></pre>
       </div>
   </div>
@@ -71,12 +71,12 @@
 
 {%block scripts%} 
   document.querySelector('#menu-conf .nav-link').classList.add('active');
-  {% if block == "GRID" %}
+  {% if sactive == "GRID" %}
   document.getElementById("f8").addEventListener( "change", function() {disablePN('f7','f8','f9'); });
   document.getElementById("f11").addEventListener("change", function() {disablePN('f10','f11','f12'); });
   document.addEventListener('DOMContentLoaded', function() {disablePN('f7','f8','f9'); });
   document.addEventListener('DOMContentLoaded', function() {disablePN('f10','f11','f12'); });
-  {% elif block == "SPECIES" %}
+  {% elif sactive == "SPECIES" %}
   document.getElementById("f3").addEventListener("change", function() {disableN('f3','f4'); });
   document.getElementById("f5").addEventListener("change", function() {disableN('f5','f6'); });
   document.getElementById("f7").addEventListener("change", function() {disableN('f7','f8'); });
@@ -91,9 +91,22 @@
   document.addEventListener('DOMContentLoaded', function() {disableN('f11','f12'); });
   document.addEventListener('DOMContentLoaded', function() {disableN('f13','f14'); });
   document.addEventListener('DOMContentLoaded', function() {disableN('f15','f16'); });
-  {% elif block == "PARTICLE_AGGREGATION" %}
+  {% elif sactive == "PARTICLE_AGGREGATION" %}
   document.getElementById("f1").addEventListener("change", function() {tdisableN('f1','f2'); });
   document.addEventListener('DOMContentLoaded', function() {tdisableN('f1','f2'); });
+  {% elif sactive == "SOURCE" %}
+  document.getElementById("f8").addEventListener("change", function() {tenableN('f8','f9'); });
+  document.addEventListener('DOMContentLoaded', function() {tenableN('f8','f9'); });
+  {% elif sactive == "MODEL_PHYSICS" %}
+  document.getElementById("f6").addEventListener("change", function() {tenableN('f6','f7'); });
+  document.addEventListener('DOMContentLoaded', function() {tenableN('f6','f7'); });
+  document.getElementById("f8").addEventListener("change", function() {tenableN('f8','f9'); });
+  document.addEventListener('DOMContentLoaded', function() {tenableN('f8','f9'); });
+  {% elif sactive == "MODEL_OUTPUT" %}
+  document.getElementById("f3").addEventListener("change", function() {tenableN('f3','f4'); });
+  document.addEventListener('DOMContentLoaded', function() {tenableN('f3','f4'); });
+  document.getElementById("f7").addEventListener("change", function() {tenableN('f7','f8'); });
+  document.addEventListener('DOMContentLoaded', function() {tenableN('f7','f8'); });
   {% endif %}
 
 {% endblock %}

@@ -2,9 +2,9 @@
  CODE
  ----
    VERSION 8.3
-{% for slabel,section in sections.items() %}
- {{ "-"* slabel|length }}
- {{slabel}}
- {{ "-"* slabel|length }}
+{% for section in sections %}
+ {{ "-"* section.label|length }}
+ {{section.label}}
+ {{ "-"* section.label|length }}
 {{section}}
 {% endfor %} 

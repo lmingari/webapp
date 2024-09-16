@@ -12,7 +12,9 @@
             <form method="POST">
                 {{ form.hidden_tag() }}
                 {% for field in form if field.widget.input_type != 'hidden' %}
+                <div class="mb-3">
                 {{ render_form_field(field) }}
+                </div>
                 {% endfor %}
                 <input type="submit" class="btn btn-primary" value='Plot'>
             </form>

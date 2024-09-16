@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint, session
 from app.extensions import db
 import click
 

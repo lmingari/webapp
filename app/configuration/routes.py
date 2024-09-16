@@ -1,42 +1,35 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, session
 from app.extensions import db
-from app.models import ProfileModel
+from app.models import Profiles
 from app.configuration.forms import getForm
-from app.fall3d import config
+from app.profiles import profile_required
 
 bp = Blueprint('configuration', __name__)
 
 @bp.route('/')
+@profile_required
 def index():
-    if not session.get("profile"):
-        flash("A profile must be loaded")
-        return redirect(url_for('profiles.index'))
-    id = session['profile']
-    p = ProfileModel.query.get_or_404(id)
-    block = p.blocks[0].type
-    return redirect(url_for('configuration.set',block=block))
+    id = session['id']
+    p = Profiles.query.get_or_404(id)
+    s = p.sections[0].label
+    return redirect(url_for('configuration.set',section=s))
 
-@bp.route('/<block>', methods=('GET','POST'))
-def set(block):
-    if not session.get("profile"):
-        flash("A profile must be loaded")
-        return redirect(url_for('profiles.index'))
-    id = session['profile']
-    p = ProfileModel.query.get_or_404(id)
-    blocks = [item.type for item in p.blocks]
-    if block in blocks:
-        block_obj = next(x for x in p.blocks if x.type==block)
-        form = getForm(block_obj)
-    else:
-        return "incorrect block"
+@bp.route('/<section>', methods=('GET','POST'))
+def set(section):
+    id = session['id']
+    p = Profiles.query.get_or_404(id)
+    sdic = {s.label: s for s in p.sections}
+    sobj = sdic.get(section)
+    if sobj is None:
+        return "Error: not found section"
+    form = getForm(sobj)
     if form.validate_on_submit():
-        form.populate_obj(block_obj)
+        form.populate_obj(sobj)
         db.session.commit()
-        flash(f"Updated block: {block}")
-    config[block].update_from_obj(block_obj)
+        flash(f"Updated section: {section}")
     return render_template('configuration/index.html',
-                           form    = form, 
-                           profile = p.title,
-                           blocks  = blocks,
-                           block   = block,
-                           section = config[block])
+                           form     = form, 
+                           slabels  = sdic.keys(),
+                           sobj     = sobj,
+                           sactive  = section,
+                           )

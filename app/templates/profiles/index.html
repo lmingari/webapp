@@ -9,11 +9,10 @@
 
 {%block content%} 
 
-<div class="container-fluid">
-    <h2>Profile panel</h2>
+<h2>Profile panel</h2>
 
-<div class="row">
-    <div class="col-4">
+<div class="row mb-4">
+    <div class="col">
     <div class="card">
         <div class="card-header bg-primary text-white">Add new profile</div>
         <div class="card-body">
@@ -32,19 +31,30 @@
 
     <div class="col">
     <div class="card">
+        <div class="card-header bg-primary text-white">Extra information</div>
+        <div class="card-body">
+            Null
+        </div>
+    </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col">
+    <div class="card">
         <div class="card-header bg-primary text-white">Profile list</div>
         <div class="card-body">
             <table class="table">
                 <thead class="table-dark">
                     <tr>
                         <th>#</th>
-                        <th>Title</th>
+                        <th>Label</th>
                         <th>Description</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% if not active %}
+                    {% if not session.get('profile') %}
                     <div class="alert alert-danger">
                         No active profile!
                     </div>
@@ -55,18 +65,18 @@
                     </div>
                     {% else %}
                     {% for profile in profiles %}
-                    {% if profile.id == active %}
+                    {% if profile.id == session.get('id') %}
                     <tr class="table-success">
                     {% else %}
                     <tr>
                     {% endif %}
                         <td>{{loop.index}}</td>
-                        <td>{{profile.title}}</td>
+                        <td>{{profile.label}}</td>
                         <td>{{profile.description}}</td>
                         <td>
                             <div class="btn-group-vertical">
-                            <a href="{{ url_for('profiles.load',id=profile.id) }}"   class="btn btn-success">Load</a>
-                            <a href="{{ url_for('profiles.delete',id=profile.id) }}" class="btn btn-danger">Delete</a> 
+                            <a href="{{ url_for('profiles.load',id=profile.id) }}"   class="btn btn-success"><i class="bi bi-check-circle-fill"></i> Load</a>
+                            <a href="{{ url_for('profiles.delete',id=profile.id) }}" class="btn btn-danger"><i class="bi bi-trash-fill"></i> Delete</a> 
                             </div>
                         </td>
                     </tr>
@@ -77,7 +87,6 @@
         </div>
     </div>
     </div>
-</div>
 </div>
 
 {% endblock %}

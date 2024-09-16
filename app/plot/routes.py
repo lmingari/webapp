@@ -1,14 +1,13 @@
 from flask import Blueprint, render_template, redirect, url_for, session, flash
 from app.plot.forms import PlotForm
+from app.profiles import profile_required
 
 bp = Blueprint('plot', __name__)
 
 
 @bp.route('/', methods = ['GET','POST'])
+@profile_required
 def index():
-    if not session.get("profile"):
-        flash("A profile must be loaded")
-        return redirect(url_for('profiles.index'))
     form = PlotForm()
     context = {
             'show_plot': False,

@@ -29,3 +29,13 @@ function tdisableN(p1,p2) {
         document.getElementById(p2).disabled = false;
     }
 }
+
+function tenableN(p1,p2) {
+    const selected = document.getElementById(p1);
+
+    if (selected.value=='value' || selected.value=='CONSTANT') {
+        document.getElementById(p2).disabled = false;
+    } else {
+        document.getElementById(p2).disabled = true;
+    }
+}
