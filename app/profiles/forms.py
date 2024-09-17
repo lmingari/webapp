@@ -17,6 +17,12 @@ def load_choices():
         choices_list += [(index, row['Volcano Name']) for index, row in df.iterrows()]
     return choices_list
 
+def get_volcano_data(index):
+    with current_app.open_resource('static/volcano_list.pkl') as f:
+        df = pd.read_pickle(f)
+        res = {col: df[col].iloc[index] for col in df}
+    return res
+
 BaseForm = model_form_factory(FlaskForm)
 
 class ProfileForm(BaseForm):

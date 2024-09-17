@@ -2,6 +2,7 @@
 {%extends "base.html" %} 
 
 {%block header%}
+<script src="{{ url_for('static', filename='myFunctions.js') }}"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/js/standalone/selectize.min.js" integrity="sha256-+C0A5Ilqmu4QcSPxrlGpaZxJ04VjsRjKu+G82kl5UJk=" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/css/selectize.bootstrap3.min.css" integrity="sha256-ze/OEYGcFbPRmvCnrSeKbRTtjG4vGLHXgOqsyLFTRjg=" crossorigin="anonymous" />
@@ -31,9 +32,9 @@
 
     <div class="col">
     <div class="card">
-        <div class="card-header bg-primary text-white">Extra information</div>
-        <div class="card-body">
-            Null
+        <div class="card-header bg-primary text-white">Volcano information</div>
+        <div id="infoVolc" class="card-body">
+            Select a volcano...
         </div>
     </div>
     </div>
@@ -97,7 +98,21 @@
   $(document).ready(function () {
       $('#volcano').selectize({
           sortField: 'text',
-          placeholder: 'Select a volcano...'
+          placeholder: 'Select a volcano...',
+          onChange: eventHandler('onChange'),
       });
   });
+
+var eventHandler = function(name) {
+  return async function() {
+    const response = await fetch('/profiles/volcano', {
+        method : 'POST',
+        headers : {'Content-Type': 'application/json; charset=utf-8'},
+        body : JSON.stringify({index: arguments[0]})
+    })
+    const data = await response.json();
+    document.getElementById('infoVolc').innerText = data.text;
+  };
+};
+
 {% endblock %}
