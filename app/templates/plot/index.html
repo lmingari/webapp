@@ -5,7 +5,7 @@
 <h2>Plot panel for profile</h2>
 
 <div class="row mb-4">
-    <div class="col-4">
+    <div class="col">
     <div class="card">
         <div class="card-header bg-primary text-white">Plot configuration</div>
         <div class="card-body">
@@ -26,9 +26,27 @@
     <div class="card">
         <div class="card-header bg-primary text-white">Plot view</div>
         <div class="card-body">
-            {% if show_plot %}
+            {% if it is defined %}
             <div class="thumbnail">
-                <img src="{{ url_for('static', filename='output.png') }}" alt="FALL3D output" style="width:100%">
+                <img id="figure" src="{{ url_for('plot.update', it=it) }}" style="width:100%">
+
+                <div class="d-flex justify-content-center">
+                <div class="btn-group">
+                <button class="btn btn-primary" onclick="nextPlot(-1)">
+                    <i class="bi bi-caret-left-fill"></i>
+                </button>
+                <button class="btn btn-primary" onclick="nextPlot(1)">
+                    <i class="bi bi-caret-right-fill"></i>
+                </button>
+                </div>
+                </div>
+                <div class="d-flex justify-content-center m-3">
+                <button class="btn btn-primary" onclick="downloadPlot()">
+                    Download
+                </button>
+                </div>
+
+            </div>
             </div>
             {% else %}
             <p>No plot</p>
@@ -50,4 +68,29 @@
 
 {%block scripts%} 
   document.querySelector('#menu-plot .nav-link').classList.add('active');
+
+  function downloadPlot() {
+    const index = document.getElementById('f2').selectedIndex;
+    window.location.href = `download/${index}`;
+  }
+
+  function nextPlot(advanceBy) {
+    const selectElement = document.getElementById('f2');
+    const totalOptions = selectElement.options.length;
+    const currentIndex = selectElement.selectedIndex;
+
+    // Calculate the new index, wrapping around if necessary
+    let newIndex = (currentIndex + advanceBy) % totalOptions;
+
+    // If newIndex is negative, wrap around by adding totalOptions
+    if (newIndex < 0) {
+        newIndex += totalOptions;
+    }
+
+    // Set the new selected index
+    selectElement.selectedIndex = newIndex;
+
+    const fig   = document.getElementById('figure'); 
+    fig.src = `update/${newIndex}`;
+  }
 {% endblock %}
