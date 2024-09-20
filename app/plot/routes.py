@@ -21,7 +21,8 @@ def get_fall3d():
 @profile_required
 def index():
     form = PlotForm()
-    context = { 'form': form }
+    context = { 'form': form,
+                'show': False}
     id = session['id']
     p = Profiles.query.get_or_404(id)
     f = get_fall3d()
@@ -38,7 +39,7 @@ def index():
         f.step   = form.f5.data
         f.log    = form.f6.data
         f.auto   = form.f7.data
-        context['it'] = it
+        context['show'] = True
     return render_template('plot/index.html', **context)
 
 @bp.route('/update/<int:it>')
